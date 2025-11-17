@@ -1,54 +1,41 @@
-// js/player.js (Firebase-backed)
+// js/player.js (Firebase-backed, full-featured for menus & links)
 
+// --- session check (stored locally by login process) ---
 function ensurePlayerSession() {
-  const session = readPlayerSession();
-  if (!session || !session.username) {
+  try {
+    const s = readPlayerSession(); // from common.js (localStorage session)
+    if (!s || !s.username) {
+      alert("โปรดล็อกอินก่อน");
+      window.location.href = "login.html";
+      return null;
+    }
+    return s;
+  } catch (e) {
+    console.error(e);
     alert("โปรดล็อกอินก่อน");
     window.location.href = "login.html";
     return null;
   }
-  return session;
 }
 
 let session = ensurePlayerSession();
-if (!session) throw "no session";
-
+if (!session) throw "no player session";
 let username = session.username;
-let currentUser = null;
+let currentUser = null; // will hold live user object from Firebase
 
-function onUserUpdate(u) {
-  if (!u) {
-    alert("ไม่พบผู้ใช้ (บัญชีโดนลบหรือแก้ไข)");
-    window.location.href = "login.html";
-    return;
-  }
-  currentUser = u;
-  document.getElementById("who").textContent = `ສະບາຍດີ, ${u.username}`;
-  document.getElementById("creditShow").textContent = `ຍອດເສຍ: ${formatNumber(u.credit)}`;
-  renderHistory();
+// --- UI helpers ---
+function setWhoAndCredit(u) {
+  if (!u) return;
+  const whoEl = document.getElementById("who");
+  const creditEl = document.getElementById("creditShow");
+  if (whoEl) whoEl.textContent = `ສະບາຍດີ, ${u.username}`;
+  if (creditEl) creditEl.textContent = `ຍອດເສຍ: ${formatNumber(u.credit)}`;
 }
 
-// watch user node realtime
-function startPlayerListeners() {
-  // watch single user
-  db.ref(`users/${username}`).on('value', snap => {
-    const u = snap.val();
-    onUserUpdate(u);
-  });
-  // notify watcher
-  watchNotify(n => {
-    displayNotify(n);
-  });
-  // history and other changes handled via onUserUpdate + functions
-  // also watch lastWinner if needed
-  watchLastWinner(lw => {
-    // optionally show last winner banner to player
-    console.log('lastWinner', lw);
-  });
-}
-
+// --- notify display ---
 function displayNotify(n) {
   const area = document.getElementById("notifyArea");
+  if (!area) return;
   if (!n) { area.innerHTML = ""; return; }
   area.innerHTML = `
     <div style="border-radius:8px;padding:10px;background:linear-gradient(90deg,#e6f0ff,transparent);color:#031026">
@@ -58,49 +45,196 @@ function displayNotify(n) {
   `;
 }
 
-// History functions (read from Firebase)
+// --- history rendering (reads user history from Firebase) ---
 async function renderHistory() {
-  const list = await getUserHistoryOnce(username);
   const box = document.getElementById("historyList");
-  box.innerHTML = list.length
-    ? list.slice().reverse().map(i => `<div style="padding:8px;border-radius:8px;background:#f3f6fd;margin-bottom:6px">${i.time} ${i.text || i}</div>`).join('')
-    : `<div class="muted">ยังไม่มีประวัติ</div>`;
-}
-
-function pushLocalHistory(text) {
-  return pushHistory(username, text);
-}
-
-// menu actions (use currentUser)
-function openMenu(m) {
-  window.openMenu && window.openMenu(m); // existing UI popup code calls openMenu
-}
-
-// logout
-document.getElementById("logout").addEventListener("click", () => {
-  removePlayerSession();
-  window.location.href = "login.html";
-});
-
-// popup close -> when used, do menu actions (reuse existing popup handlers)
-document.getElementById("popupClose").addEventListener("click", () => {
-  document.getElementById("popup").style.display = "none";
-  // previous code expects doMenuAction to be called; keep that binding
-});
-
-// connect UI functions used by existing player.js code
-window.pushHistory = function(userName, text) { return pushHistory(userName, text); };
-window.refreshUser = function() {
-  // manual refresh, but we listen realtime so normally not needed
-  if (currentUser) {
-    document.getElementById("creditShow").textContent = `ຍອດເສຍ: ${formatNumber(currentUser.credit)}`;
-    renderHistory();
+  if (!box) return;
+  try {
+    const list = await getUserHistoryOnce(username); // from common.js
+    box.innerHTML = list.length
+      ? list.slice().reverse().map(i => `<div style="padding:8px;border-radius:8px;background:#f3f6fd;margin-bottom:6px">${i.time} ${i.text || i}</div>`).join('')
+      : `<div class="muted">ยังไม่มีประวัติ</div>`;
+  } catch (e) {
+    console.error(e);
+    box.innerHTML = `<div class="muted">ไม่สามารถอ่านประวัติ</div>`;
   }
+}
+
+// --- open link safely in new tab ---
+function openLink(url) {
+  if (!url) return false;
+  try {
+    window.open(url, "_blank");
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+
+// --- CORE: menu handling ---
+// pendingMenu used to remember which menu the user opened while popup is shown
+let pendingMenu = null;
+
+window.openMenu = function (m) {
+  // m expected 1..6
+  pendingMenu = m;
+  const popup = document.getElementById("popup");
+  const title = document.getElementById("popupTitle");
+  const body = document.getElementById("popupBody");
+  if (!popup || !title || !body) return;
+
+  title.textContent = `ເມນູ ${m}`;
+  // short descriptions (you can customize)
+  const RULES = {
+    1: "📘 ຄືນຍອດ 5%",
+    2: "📘 Free Spin",
+    3: "📘 Lucky Box",
+    4: "📘 รูปจากแอดมิน",
+    5: "📘 Coming Soon",
+    6: "📘 Coming Soon"
+  };
+  body.textContent = RULES[m] || "ไม่มีข้อมูลกติกา";
+  popup.style.display = "flex";
 };
 
-// start listeners when db ready
-function waitStart() {
-  if (typeof db === 'undefined') { setTimeout(waitStart, 50); return; }
+// When popup closed we actually perform the action (this mimics previous behavior)
+document.getElementById("popupClose")?.addEventListener("click", async () => {
+  const popup = document.getElementById("popup");
+  if (popup) popup.style.display = "none";
+
+  if (!pendingMenu) return;
+  await doMenuAction(pendingMenu);
+  pendingMenu = null;
+});
+
+// do the actual action for a menu number
+async function doMenuAction(m) {
+  // ensure we have fresh user
+  try {
+    const snap = await getUserOnce(username);
+    if (!snap) {
+      alert("ไม่พบผู้ใช้ (อาจโดนลบหรือแก้ไข)");
+      window.location.href = "login.html";
+      return;
+    }
+    currentUser = snap;
+    setWhoAndCredit(currentUser);
+  } catch (e) {
+    console.error(e);
+  }
+
+  // MENU 1 — คืนยอด 5%
+  if (m === 1) {
+    const credit = Number(currentUser.credit || 0);
+    const refund = Math.round(credit * 0.05);
+    // show immediate popup (reuse popup)
+    const popup = document.getElementById("popup");
+    const title = document.getElementById("popupTitle");
+    const body = document.getElementById("popupBody");
+    title.textContent = "ເມນູ 1 • ຄືນຍອດ 5%";
+    body.innerHTML = `ຍອດເສຍ: ${formatNumber(credit)}<br>5% = ${formatNumber(refund)}`;
+    if (popup) popup.style.display = "flex";
+    await pushHistory(username, `ເມນູ 1 • ຄືນຍອດ ${formatNumber(refund)}`);
+    return;
+  }
+
+  // MENU 2 — Spin
+  if (m === 2) {
+    await pushHistory(username, `ເມນູ 2 • ເປີດ Spin`);
+    if (currentUser.spinLink) {
+      openLink(currentUser.spinLink);
+    } else {
+      alert("ยังไม่มีลิงก์ Spin");
+    }
+    return;
+  }
+
+  // MENU 3 — Lucky Box
+  if (m === 3) {
+    await pushHistory(username, `ເມນູ 3 • Lucky Box`);
+    if (currentUser.luckyLink) {
+      openLink(currentUser.luckyLink);
+    } else {
+      alert("ยังไม่มีลิงก์ Lucky Box");
+    }
+    return;
+  }
+
+  // MENU 4 — Show Image
+  if (m === 4) {
+    await pushHistory(username, `ເມນູ 4 • ເບິ່ງຮູບ`);
+    if (currentUser.menu4img) {
+      const popup = document.getElementById("popup");
+      const title = document.getElementById("popupTitle");
+      const body = document.getElementById("popupBody");
+      title.textContent = "ຮູບຈາກແອດມິນ";
+      body.innerHTML = `
+        <img src="${currentUser.menu4img}" style="max-width:100%;border-radius:8px">
+        <br>
+        <a download="${currentUser.username}_menu4.png" href="${currentUser.menu4img}">
+          <button class="btn btn-ghost" style="margin-top:8px">⬇ ดาวน์โหลด</button>
+        </a>
+      `;
+      popup.style.display = "flex";
+    } else {
+      alert("ยังไม่มีรูปภาพกำหนดโดยแอดมิน");
+    }
+    return;
+  }
+
+  // MENU 5 & 6 — Placeholder actions (could open event link or show coming soon)
+  if (m === 5 || m === 6) {
+    await pushHistory(username, `ເມນູ ${m} • ໄວໆນີ້`);
+    // if admin provided eventLink, open it; otherwise show coming soon
+    if (currentUser.eventLink) {
+      openLink(currentUser.eventLink);
+    } else {
+      alert("Coming soon");
+    }
+    return;
+  }
+}
+
+// --- start listeners: watch user data & notifications live ---
+function startPlayerListeners() {
+  // watch this user's node (realtime)
+  db.ref(`users/${username}`).on('value', snap => {
+    const u = snap.val();
+    if (!u) {
+      alert("บัญชีถูกลบหรือไม่พบผู้ใช้");
+      window.location.href = "login.html";
+      return;
+    }
+    currentUser = u;
+    setWhoAndCredit(u);
+    renderHistory();
+  });
+
+  // watch notify node
+  watchNotify(n => displayNotify(n));
+
+  // watch lastWinner if you want to show a banner or special UI action
+  watchLastWinner(lw => {
+    // optional: show toast or banner
+    // console.log("lastWinner updated", lw);
+  });
+}
+
+function logoutPlayer() {
+  removePlayerSession();
+  window.location.href = "login.html";
+}
+
+// bind logout button
+document.getElementById("logout")?.addEventListener("click", logoutPlayer);
+
+// start listeners when db exists
+function waitForDbAndStart() {
+  if (typeof db === 'undefined') {
+    setTimeout(waitForDbAndStart, 50);
+    return;
+  }
   startPlayerListeners();
 }
-waitStart();
+waitForDbAndStart();
