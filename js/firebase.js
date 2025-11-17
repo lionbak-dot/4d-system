@@ -1,6 +1,4 @@
-<!-- js/firebase.js -->
-
-<!-- โหลด Firebase compat แบบ Script ธรรมดา เพื่อให้ GitHub Pages รองรับ -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
@@ -15,7 +13,6 @@
     appId: "1:777682067922:web:31450ab7a0186eb52e680b",
     measurementId: "G-HQ3G1D44P6"
   };
-
   firebase.initializeApp(firebaseConfig);
   window.db = firebase.database();
 </script>
