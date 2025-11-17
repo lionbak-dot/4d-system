@@ -1,12 +1,10 @@
-// js/firebase.js
-// โหลดสคริปต์ compat แบบ dynamic (ต้องใส่ <script src="js/firebase.js"></script> ใน HTML ก่อน common.js)
-(function(){
-    // Inject compat libs (synchronous enough for small apps; ensures firebase global exists)
-    document.write('<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"><\/script>');
-    document.write('<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"><\/script>');
-  })();
-  
-  // --- Firebase config (จากที่ให้มา) ---
+<!-- js/firebase.js -->
+
+<!-- โหลด Firebase compat แบบ Script ธรรมดา เพื่อให้ GitHub Pages รองรับ -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyCQbfxWkqx5r8ObQdMIZDPjGNn4PocWFYk",
     authDomain: "d-system-d0fe9.firebaseapp.com",
@@ -17,17 +15,7 @@
     appId: "1:777682067922:web:31450ab7a0186eb52e680b",
     measurementId: "G-HQ3G1D44P6"
   };
-  
-  // wait a tick for firebase libs to load
-  function _initFirebase() {
-    if (typeof firebase === "undefined" || !firebase.database) {
-      setTimeout(_initFirebase, 50);
-      return;
-    }
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    window.db = firebase.database();
-  }
-  _initFirebase();
-  
+
+  firebase.initializeApp(firebaseConfig);
+  window.db = firebase.database();
+</script>
