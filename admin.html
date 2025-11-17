@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="lo">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Panel — 4D</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="brand">
+      <div class="logo">ADM</div>
+      <div>
+        <div class="h1">Admin Panel</div>
+        <div class="small muted" id="adminInfo"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="logoutAdmin" class="btn btn-ghost">Logout</button>
+    </div>
+  </div>
+
+  <div style="height:12px"></div>
+
+  <!-- LOGIN GUARD -->
+  <div id="loginGuard" class="panel">
+    <h3 style="color:var(--accent);margin:0 0 8px 0">🔒 Admin Login</h3>
+
+    <div class="row" style="gap:8px">
+      <input id="adminUser" class="input" placeholder="admin username" value="admin">
+      <input id="adminPass" class="input" type="password" placeholder="password" value="admin123">
+      <button id="doAdminLogin" class="btn btn-primary">Login</button>
+    </div>
+
+    <div class="small muted" style="margin-top:8px">
+      Default: admin / admin123
+    </div>
+  </div>
+
+  <!-- ADMIN AREA -->
+  <div id="adminArea" style="display:none">
+
+    <!-- PLAYER MANAGEMENT -->
+    <div class="panel" style="margin-top:12px">
+      <h3 style="margin:0 0 10px 0;color:var(--accent)">👥 ผู้เล่น</h3>
+
+      <div class="grid-3">
+        <input id="u_name" class="input" placeholder="username">
+        <input id="u_pass" class="input" placeholder="password">
+        <input id="u_code" class="input" placeholder="code (A001)">
+        <input id="u_credit" type="number" class="input" placeholder="credit">
+        <input id="u_spinLink" class="input" placeholder="spin link">
+        <input id="u_boxLink" class="input" placeholder="lucky box link">
+        <input id="u_eventLink" class="input" placeholder="event/news link">
+        <input id="u_img" type="file" class="input" accept="image/*">
+      </div>
+
+      <div style="margin-top:10px" class="controls">
+        <button id="createUser" class="btn btn-primary">➕ สร้าง/อัปเดต</button>
+        <button id="clearAll" class="btn btn-danger">♻️ Clear All</button>
+      </div>
+
+      <table class="table" id="usersTable">
+        <thead>
+          <tr>
+            <th>username</th>
+            <th>code</th>
+            <th>credit</th>
+            <th>menu4</th>
+            <th>links</th>
+            <th>action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- PRIZES -->
+    <div class="panel" style="margin-top:12px">
+      <h3 style="color:var(--accent)">🎁 รางวัล</h3>
+
+      <div class="row">
+        <input id="pr_label" class="input" placeholder="label">
+        <input id="pr_code" class="input" placeholder="code">
+        <input id="pr_amount" type="number" class="input" placeholder="amount">
+        <button id="addPrize" class="btn btn-primary">➕ Add</button>
+      </div>
+
+      <table class="table" id="prizeTable">
+        <thead>
+          <tr>
+            <th>code</th>
+            <th>label</th>
+            <th>amt</th>
+            <th>action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- DRAW -->
+    <div class="panel" style="margin-top:12px">
+      <h3 style="color:var(--accent)">🎲 Draw & Export</h3>
+
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <select id="prizeSelect" class="input"></select>
+        <button id="drawBtn" class="btn btn-primary">🎯 Draw winner</button>
+        <button id="notifyPlayers" class="btn btn-ghost">🔔 Notify</button>
+        <button id="exportCSV" class="btn btn-ghost">⬇️ Export CSV</button>
+      </div>
+
+      <div style="margin-top:10px">
+        <div class="small muted">
+          Last winner: <span id="lastWinner">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="panel" style="margin-top:12px">
+      <h3 style="color:var(--accent)">🕘 History</h3>
+
+      <div class="row">
+        <select id="histUser" class="input"></select>
+        <button id="viewHist" class="btn btn-ghost">View</button>
+        <button id="clearHistUser" class="btn btn-danger">Clear</button>
+      </div>
+
+      <div id="histList" class="small muted empty" style="margin-top:10px">
+        ไม่มีประวัติ
+      </div>
+    </div>
+
+  </div><!-- END ADMIN AREA -->
+
+  <div style="height:18px"></div>
+  <div class="footer">เวอร์ชัน UI ใหม่ — Minimal Dark Pro</div>
+</div>
+
+
+
+<!-- ใส่ก่อน common.js -->
+<script src="js/firebase.js"></script>
+<script src="js/common.js"></script>
+<!-- page-specific -->
+<script src="js/login.js"></script>
+<!-- or -->
+<script src="js/admin.js"></script>
+<!-- or -->
+<script src="js/player.js"></script>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+</body>
+</html>

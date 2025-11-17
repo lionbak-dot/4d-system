@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="lo">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Player — 4D</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="brand">
+      <div class="logo">PLY</div>
+      <div>
+        <div class="h1">Player Dashboard</div>
+        <div id="who" class="small muted">ສະບາຍດີ, -</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div id="creditShow" class="small muted">ຍອດເສຍ: -</div>
+      <button id="toggleSound" class="btn btn-ghost">🔊 Sound</button>
+      <button id="logout" class="btn btn-ghost">Logout</button>
+    </div>
+  </div>
+
+  <div style="height:12px"></div>
+
+  <!-- NOTIFY AREA -->
+  <div id="notifyArea"></div>
+
+  <!-- MENU GRID -->
+  <div class="grid-3">
+
+    <div class="panel card-click" data-menu="1" onclick="openMenu(1)">
+      <h3>1 • ຄືນຍອດເສຍ 5% ທຸກວັນຈັນ</h3>
+      <div class="small muted">ຍອດເສຍ ຈະສະເເດງໃຫ້ທ່ານ ເມື່ອກົດ ເປີດ ເເລ້ວເເຄັບຫນ້າຈໍ <img src="har.jpg" alt="" width="100%"></div>
+    </div>
+
+    <div class="panel card-click" data-menu="2" onclick="openMenu(2)">
+      <h3>2 • FreeSpin ທຸກວັນພະຫັດ</h3>
+      <div class="small muted">ຄິກເຂົ້າເພື່ອSpin <img src="spin.jpg" alt="" width="100%"></div>
+    </div>
+
+    <div class="panel card-click" data-menu="3" onclick="openMenu(3)">
+      <h3>3 • Lucky Box</h3>
+      <div class="small muted">ເປີດກ່ອງໂຊກດີ (ໄວໆນີ້) <img src="box.jpg" alt="" width="100%"></div>
+    </div>
+
+    <div class="panel card-click" data-menu="4" onclick="openMenu(4)">
+      <h3>4 • ໂປຣເເຈກລົດເເລະເງີນສົດທຸກວັນຈັນ</h3>
+      <div class="small muted">ดาวน์โหลดรูปจากแอดมิน <img src="car.jpg" alt="" width="100%"></div>
+    </div>
+
+    <!-- MENU 5 — ADD # -->
+    <div class="panel card-click" data-menu="5" onclick="openMenu(5)">
+      <h3># 5 • ໂປຈະມາໄວໆນີ້</h3>
+      <div class="small muted">ໄວໆນີ້ <img src="son.jpg" alt="" width="100%"></div>
+    </div>
+
+    <!-- MENU 6 — ADD # -->
+    <div class="panel card-click" data-menu="6" onclick="openMenu(6)">
+      <h3># 6 • ໂປຈະມາໄວໆນີ້</h3>
+      <div class="small muted">ໄວໆນີ້ <img src="son.jpg" alt="" width="100%"></div>
+    </div>
+
+  </div>
+
+  <!-- HISTORY -->
+  <div style="margin-top:18px">
+    <h3 style="margin:0 0 6px 0;color:var(--accent)">ประวัติการกดเมนู (ล่าสุด)</h3>
+    <div id="historyList" class="small muted empty">ยังไม่มีประวัติ</div>
+  </div>
+
+</div>
+
+<!-- POPUP -->
+<div id="popup" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  align-items:center;
+  justify-content:center;
+  z-index:99;
+">
+  <div style="
+    background:var(--panel);
+    padding:18px;
+    border-radius:12px;
+    max-width:720px;
+    margin:20px;
+    box-shadow:var(--shadow);
+  ">
+    <h3 id="popupTitle" style="margin:0;color:var(--accent)">Title</h3>
+    <div id="popupBody" class="small muted" style="margin-top:10px"></div>
+
+    <div style="margin-top:12px;text-align:right">
+      <button id="popupClose" class="btn btn-ghost">ເປີດ</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ใส่ก่อน common.js -->
+<script src="js/firebase.js"></script>
+<script src="js/common.js"></script>
+<!-- page-specific -->
+<script src="js/login.js"></script>
+<!-- or -->
+<script src="js/admin.js"></script>
+<!-- or -->
+<script src="js/player.js"></script>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+</body>
+</html>

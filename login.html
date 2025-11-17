@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="lo">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login — 4D System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="brand">
+      <div class="logo">4D</div>
+      <div>
+        <div class="h1">4D • ระบบผู้เล่น</div>
+        <div class="small muted">เข้าสู่ระบบสำหรับ Player / Admin</div>
+      </div>
+    </div>
+
+    <div class="small muted">
+      เก็บข้อมูลบนเครื่อง (localStorage)
+    </div>
+  </div>
+
+  <div style="height:18px"></div>
+
+  <!-- LOGIN PANEL -->
+  <div class="panel" style="max-width:560px;margin:0 auto">
+    <h3 style="margin:0 0 10px 0;color:var(--accent)">🔐 ล็อกอิน</h3>
+
+    <label class="small muted">Username</label>
+    <input id="username" class="input" placeholder="username">
+
+    <label class="small muted" style="margin-top:8px">Password</label>
+    <input id="password" type="password" class="input" placeholder="password">
+
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button id="loginBtn" class="btn btn-primary">ເຂົ້າລະບົບ</button>
+      <button id="demoCreate" class="btn btn-ghost">สร้างตัวอย่าง player01</button>
+    </div>
+
+    <div style="margin-top:12px" class="small muted">
+      Admin เริ่มต้น: <code>admin</code> / <code>admin123</code>
+    </div>
+  </div>
+
+  <div class="footer">
+    ถ้าต้องการหน้า Admin ให้เปิด 
+    <a href="admin.html" style="color:var(--accent)">Admin</a>
+  </div>
+
+</div>
+
+
+<!-- ใส่ก่อน common.js -->
+<script src="js/firebase.js"></script>
+<script src="js/common.js"></script>
+<!-- page-specific -->
+<script src="js/login.js"></script>
+<!-- or -->
+<script src="js/admin.js"></script>
+<!-- or -->
+<script src="js/player.js"></script>
+
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+</body>
+</html>
