@@ -141,7 +141,7 @@ async function doMenuAction(m) {
 
   // MENU 2 — Spin
   if (m === 2) {
-    await pushHistory(username, `ເມນູ 2 • ເປີດ Spin`);
+    await pushHistory(username, `ເມນູ 2 • ເປີດ Spin ສະບາຍດີ`);
     if (currentUser.spinLink) {
       openLink(currentUser.spinLink);
     } else {
@@ -168,7 +168,7 @@ async function doMenuAction(m) {
       const popup = document.getElementById("popup");
       const title = document.getElementById("popupTitle");
       const body = document.getElementById("popupBody");
-      title.textContent = "ຮູບຈາກແອດມິນ";
+      title.textContent = "ຮູບຈາກແອດມິນ 1.-ເຕີມຄົບ200ບາດ ຈະໄດ້1ລະຫັດ ເເຮງມີລະຫັດຫຼາຍເເຮງມີໂອກາດໄດ້ລາງວັນ 2.ລະຫັດນີ້ເຮົາຈະນຳໄປເເລ່ນດ້ອມຫາ ຜູ້ໂຊກດີ ລາງວັນ ລົດຈັກໄຟຟ້າ 2ຄັນ ເເລະເງີນສົດອີກຈຳນວນ 19ລາງວັນ ລວມມູ່ນຄ່າ 35ລ້ານກີບ 3.ຄົນຕໍ່1ລາງວັນ 4.ກໍລະນີກວດພົບເຫັນ ການເຄື່ອນໄຫວຜິດປົກກະຕິ ຫຼືການໂກງຫູືບໍ່ເປັນໄປຕາມກະຕິກາດ້ານເທີງ ຖືກກວດພົບ, ຫຼັງຈາກນັ້ນຍອດເງິນທັງຫມົດໃນບັນຊີ Lion777 ແມ່ນມີສິດຖືກຖອນຄືນ. ທຸກຍອດເງິນຝາກ ແລະເງິນທີ່ຊະນະໃນ ID ນັ້ນ";
       body.innerHTML = `
         <img src="${currentUser.menu4img}" style="max-width:100%;border-radius:8px">
         <br>
@@ -238,6 +238,7 @@ function waitForDbAndStart() {
   startPlayerListeners();
 }
 waitForDbAndStart();
+
 
 
 
