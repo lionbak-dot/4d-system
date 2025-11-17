@@ -132,7 +132,12 @@ async function doMenuAction(m) {
     const popup = document.getElementById("popup");
     const title = document.getElementById("popupTitle");
     const body = document.getElementById("popupBody");
-    title.textContent = "ເມນູ 1 • ຄືນຍອດ 5%";
+    title.textContent = "ເມນູ 1 • ຄືນຍອດ 5%<ol>
+        <li>ທາງເຮົາຈະກຳນົດເອົາຍອດເສຍ ຕາມໂມງ ເວລາ ປິດເເລະເປີດໂຊນ ຂອງທຸກວັນຈັນ</li>
+    <li>ຍອດເສຍ ສາມາດນຳປັນເງີນສົດ ເເລະ ເປັນເຄດິດໃດ້</li>
+        <li>ສຳລັບ ຢູ່ເຊີ້ທີ່ເປີດເປັນ ຢູ່ເຊີຖາວອນເທົ່ານັ້ນ</li>
+            <li>ກໍລະນີກວດພົບເຫັນ ການເຄື່ອນໄຫວຜິດປົກກະຕິ ຫຼືການໂກງຫູືບໍ່ເປັນໄປຕາມກະຕິກາດ້ານເທີງ ຖືກກວດພົບ, ຫຼັງຈາກນັ້ນຍອດເງິນທັງຫມົດໃນບັນຊີ  Leonet777 ແມ່ນມີສິດຖືກຖອນຄືນ. ທຸກຍອດເງິນຝາກ ແລະເງິນທີ່ຊະນະໃນ ID ນັ້ນ</li>
+</ol>";
     body.innerHTML = `ຍອດເສຍ: ${formatNumber(credit)}<br>5% = ${formatNumber(refund)}`;
     if (popup) popup.style.display = "flex";
     await pushHistory(username, `ເມນູ 1 • ຄືນຍອດ ${formatNumber(refund)}`);
@@ -238,3 +243,4 @@ function waitForDbAndStart() {
   startPlayerListeners();
 }
 waitForDbAndStart();
+
