@@ -1,39 +1,43 @@
-// js/player.js (Firebase-backed, full-featured for menus & links)
-
-// --- session check (stored locally by login process) ---
+//----------------------------------------------------
+// PLAYER SESSION CHECK
+//----------------------------------------------------
 function ensurePlayerSession() {
   try {
-    const s = readPlayerSession(); // from common.js (localStorage session)
+    const s = JSON.parse(localStorage.getItem("playerSession"));
     if (!s || !s.username) {
-      alert("โปรดล็อกอินก่อน");
       window.location.href = "login.html";
       return null;
     }
     return s;
   } catch (e) {
     console.error(e);
-    alert("โปรดล็อกอินก่อน");
     window.location.href = "login.html";
     return null;
   }
 }
 
 let session = ensurePlayerSession();
-if (!session) throw "no player session";
-let username = session.username;
-let currentUser = null; // will hold live user object from Firebase
+if (!session) throw "No session";
 
-// --- UI helpers ---
+let username = session.username;
+let currentUser = null;     // loaded from Firebase
+
+
+//----------------------------------------------------
+// UI UPDATE
+//----------------------------------------------------
 function setWhoAndCredit(u) {
-  if (!u) return;
-  const whoEl = document.getElementById("who");
-  const creditEl = document.getElementById("creditShow");
-  if (whoEl) whoEl.textContent = `ສະບາຍດີ, ${u.username}`;
-  if (creditEl) creditEl.textContent = `ຍອດເສຍ: ${formatNumber(u.credit)}`;
+  document.getElementById("who").textContent = `ສະບາຍດີ, ${u.username}`;
+  document.getElementById("creditShow").textContent = `ຍອດເສຍ: ${Number(u.credit).toLocaleString()}`;
 }
 
+
+//----------------------------------------------------
+// NOTIFY SYSTEM (Realtime)
+//----------------------------------------------------
 function displayNotify(n) {
   const area = document.getElementById("notifyArea");
+
   if (!n) {
     area.innerHTML = "";
     return;
@@ -44,183 +48,78 @@ function displayNotify(n) {
   area.innerHTML = `
     <div id="notifyBox" class="notify-box notify-blink notify-pulse">
       🔔 <b>${n.msg}</b>
-      <div class="small muted">(${time})</div>
+      <div style="font-size:11px; opacity:0.6; margin-top:4px;">
+        (${time})
+      </div>
     </div>
   `;
 
-  // 📱 ทำให้เครื่องสั่น (มือถือ)
-  if (navigator.vibrate) {
-    navigator.vibrate([120, 80, 120]);
-  }
+  // mobile vibration
+  if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
 
-  // ปิดกระพริบหลัง 3 วินาที (แต่ข้อความยังอยู่)
+  // stop blinking after 3s
   setTimeout(() => {
     const box = document.getElementById("notifyBox");
-    if (box) {
-      box.classList.remove("notify-blink");
-    }
+    if (box) box.classList.remove("notify-blink");
   }, 3000);
 }
 
 
-// --- history rendering (reads user history from Firebase) ---
+//----------------------------------------------------
+// HISTORY
+//----------------------------------------------------
 async function renderHistory() {
   const box = document.getElementById("historyList");
-  if (!box) return;
   try {
-    const list = await getUserHistoryOnce(username); // from common.js
-    box.innerHTML = list.length
-      ? list.slice().reverse().map(i => `<div style="padding:8px;border-radius:8px;background:#f3f6fd;margin-bottom:6px">${i.time} ${i.text || i}</div>`).join('')
-      : `<div class="muted">ยังไม่มีประวัติ</div>`;
-  } catch (e) {
-    console.error(e);
-    box.innerHTML = `<div class="muted">ไม่สามารถอ่านประวัติ</div>`;
-  }
-}
-
-// --- open link safely in new tab ---
-function openLink(url) {
-  if (!url) return false;
-  try {
-    window.open(url, "_blank");
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-}
-
-// --- CORE: menu handling ---
-// pendingMenu used to remember which menu the user opened while popup is shown
-let pendingMenu = null;
-
-window.openMenu = function (m) {
-  // m expected 1..6
-  pendingMenu = m;
-  const popup = document.getElementById("popup");
-  const title = document.getElementById("popupTitle");
-  const body = document.getElementById("popupBody");
-  if (!popup || !title || !body) return;
-
-  title.textContent = `ເມນູ ${m}`;
-  // short descriptions (you can customize)
-  const RULES = {
-    1: "📘 ຄືນຍອດ 5% 1.ທາງເຮົາຈະກຳນົດເອົາຍອດເສຍ ຕາມໂມງ ເວລາ ປິດເເລະເປີດໂຊນ ຂອງທຸກວັນຈັນ 2.ຍອດເສຍ ສາມາດນຳປັນເງີນສົດ ເເລະ ເປັນເຄດິດໃດ້ 3.ສຳລັບ ຢູ່ເຊີ້ທີ່ເປີດເປັນ ຢູ່ເຊີຖາວອນເທົ່ານັ້ນ 4.ກໍລະນີກວດພົບເຫັນ ການເຄື່ອນໄຫວຜິດປົກກະຕິ ຫຼືການໂກງຫູືບໍ່ເປັນໄປຕາມກະຕິກາດ້ານເທີງ ຖືກກວດພົບ, ຫຼັງຈາກນັ້ນຍອດເງິນທັງຫມົດໃນບັນຊີ Lion777 ແມ່ນມີສິດຖືກຖອນຄືນ. ທຸກຍອດເງິນຝາກ ແລະເງິນທີ່ຊະນະໃນ ID ນັ້ນ",
-    2: "📘 Free Spin 1.ສຳລັບຢູ່ເຊີ້ປະຈຳ ຫລື ຢູ່ເຊີ້ທີ່ເປີດເປັນ ຢູ່ເຊີຖາວອນເທົ່ານັ້ນ  2.ລາງວັນ ສາມາດນຳເປັນເງີນສົດ ເເລະ ເປັນເຄດິດໃດ້   3.ກໍລະນີກວດພົບເຫັນ ການເຄື່ອນໄຫວຜິດປົກກະຕິ ຫຼືການໂກງຫູືບໍ່ເປັນໄປຕາມກະຕິກາດ້ານເທີງ ຖືກກວດພົບ, ຫຼັງຈາກນັ້ນຍອດເງິນທັງຫມົດໃນບັນຊີ Lion777 ແມ່ນມີສິດຖືກຖອນຄືນ. ທຸກຍອດເງິນຝາກ ແລະເງິນທີ່ຊະນະໃນ ID ນັ້ນ",
-    3: "📘 Lucky Box",
-    4: "📘 รูปจากแอดมิน 1.ເຕີມຄົບ200ບາດ ຈະໄດ້1ລະຫັດ ເເຮງມີລະຫັດຫຼາຍເເຮງມີໂອກາດໄດ້ລາງວັນ 2.ລະຫັດນີ້ເຮົາຈະນຳໄປເເລ່ນດ້ອມຫາ ຜູ້ໂຊກດີ ລາງວັນ ລົດຈັກໄຟຟ້າ 2ຄັນ ເເລະເງີນສົດອີກຈຳນວນ 19ລາງວັນ ລວມມູ່ນຄ່າ 35ລ້ານກີບ 3.ຄົນຕໍ່1ລາງວັນ 4.ກໍລະນີກວດພົບເຫັນ ການເຄື່ອນໄຫວຜິດປົກກະຕິ ຫຼືການໂກງຫູືບໍ່ເປັນໄປຕາມກະຕິກາດ້ານເທີງ ຖືກກວດພົບ, ຫຼັງຈາກນັ້ນຍອດເງິນທັງຫມົດໃນບັນຊີ Lion777 ແມ່ນມີສິດຖືກຖອນຄືນ. ທຸກຍອດເງິນຝາກ ແລະເງິນທີ່ຊະນະໃນ ID ນັ້ນ",
-    5: "📘 Coming Soon",
-    6: "📘 Coming Soon"
-  };
-  body.textContent = RULES[m] || "ไม่มีข้อมูลกติกา";
-  popup.style.display = "flex";
-};
-
-// When popup closed we actually perform the action (this mimics previous behavior)
-document.getElementById("popupClose")?.addEventListener("click", async () => {
-  const popup = document.getElementById("popup");
-  if (popup) popup.style.display = "none";
-
-  if (!pendingMenu) return;
-  await doMenuAction(pendingMenu);
-  pendingMenu = null;
-});
-
-// do the actual action for a menu number
-async function doMenuAction(m) {
-  // ensure we have fresh user
-  try {
-    const snap = await getUserOnce(username);
-    if (!snap) {
-      alert("ไม่พบผู้ใช้ (อาจโดนลบหรือแก้ไข)");
-      window.location.href = "login.html";
+    const snap = await db.ref("history/" + username).once("value");
+    const list = snap.val() || [];
+    if (list.length === 0) {
+      box.innerHTML = `<div class="small muted">ຍັງບໍ່ມີປະຫວັດ</div>`;
       return;
     }
-    currentUser = snap;
-    setWhoAndCredit(currentUser);
+
+    box.innerHTML = list
+      .slice()
+      .reverse()
+      .map(i => `<div style="padding:6px;background:#eef3ff;border-radius:8px;margin-bottom:6px">${i.time} — ${i.text}</div>`)
+      .join('');
   } catch (e) {
     console.error(e);
   }
-
-  // MENU 1 — คืนยอด 5%
-  if (m === 1) {
-    const credit = Number(currentUser.credit || 0);
-    const refund = Math.round(credit * 0.05);
-    // show immediate popup (reuse popup)
-    const popup = document.getElementById("popup");
-    const title = document.getElementById("popupTitle");
-    const body = document.getElementById("popupBody");
-    title.textContent = "ເມນູ 1 • ຄືນຍອດ 5%  ";
-    body.innerHTML = `ຍອດເສຍ: ${formatNumber(credit)}<br>5% = ${formatNumber(refund)}`;
-    if (popup) popup.style.display = "flex";
-    await pushHistory(username, `ເມນູ 1 • ຄືນຍອດ ${formatNumber(refund)}`);
-    return;
-  }
-
-  // MENU 2 — Spin
-  if (m === 2) {
-    await pushHistory(username, `ເມນູ 2 • ເປີດ Spin ສະບາຍດີ`);
-    if (currentUser.spinLink) {
-      openLink(currentUser.spinLink);
-    } else {
-      alert("ยังไม่มีลิงก์ Spin");
-    }
-    return;
-  }
-
-  // MENU 3 — Lucky Box
-  if (m === 3) {
-    await pushHistory(username, `ເມນູ 3 • Lucky Box`);
-    if (currentUser.luckyLink) {
-      openLink(currentUser.luckyLink);
-    } else {
-      alert("ยังไม่มีลิงก์ Lucky Box");
-    }
-    return;
-  }
-
-  // MENU 4 — Show Image
-  if (m === 4) {
-    await pushHistory(username, `ເມນູ 4 • ເບິ່ງຮູບ `);
-    if (currentUser.menu4img) {
-      const popup = document.getElementById("popup");
-      const title = document.getElementById("popupTitle");
-      const body = document.getElementById("popupBody");
-      title.textContent = "ຮູບຈາກແອດມິນ ";
-      body.innerHTML = `
-        <img src="${currentUser.menu4img}" style="max-width:100%;border-radius:8px">
-        <br>
-        <a download="${currentUser.username}_menu4.png" href="${currentUser.menu4img}">
-          <button class="btn btn-ghost" style="margin-top:8px">⬇ ดาวน์โหลด</button>
-        </a>
-      `;
-      popup.style.display = "flex";
-    } else {
-      alert("ยังไม่มีรูปภาพกำหนดโดยแอดมิน");
-    }
-    return;
-  }
-
-  // MENU 5 & 6 — Placeholder actions (could open event link or show coming soon)
-  if (m === 5 || m === 6) {
-    await pushHistory(username, `ເມນູ ${m} • ໄວໆນີ້`);
-    // if admin provided eventLink, open it; otherwise show coming soon
-    if (currentUser.eventLink) {
-      openLink(currentUser.eventLink);
-    } else {
-      alert("Coming soon");
-    }
-    return;
-  }
 }
 
-// --- start listeners: watch user data & notifications live ---
-function startPlayerListeners() {
-  // watch this user's node (realtime)
-  db.ref(`users/${username}`).on('value', snap => {
+
+//----------------------------------------------------
+// PUSH HISTORY
+//----------------------------------------------------
+function pushHistory(u, text) {
+  const item = {
+    time: new Date().toLocaleString(),
+    text: text
+  };
+  return db.ref("history/" + u).push(item);
+}
+
+
+//----------------------------------------------------
+// LOGOUT
+//----------------------------------------------------
+document.getElementById("logout").addEventListener("click", () => {
+  localStorage.removeItem("playerSession");
+  window.location.href = "login.html";
+});
+
+
+//----------------------------------------------------
+// MAIN REALTIME LISTENERS
+//----------------------------------------------------
+function startListeners() {
+  // watch user
+  db.ref("users/" + username).on("value", snap => {
     const u = snap.val();
     if (!u) {
-      alert("บัญชีถูกลบหรือไม่พบผู้ใช้");
+      alert("ຜູ້ໃຊ້ຖືກລຶບ ຫຼືບໍ່ມີຢູ່");
+      localStorage.removeItem("playerSession");
       window.location.href = "login.html";
       return;
     }
@@ -229,40 +128,73 @@ function startPlayerListeners() {
     renderHistory();
   });
 
-  // watch notify node
-  watchNotify(n => displayNotify(n));
-
-  // watch lastWinner if you want to show a banner or special UI action
-  watchLastWinner(lw => {
-    // optional: show toast or banner
-    // console.log("lastWinner updated", lw);
+  // watch notify
+  db.ref("notify").on("value", snap => {
+    displayNotify(snap.val());
   });
 }
 
-function logoutPlayer() {
-  removePlayerSession();
-  window.location.href = "login.html";
-}
+startListeners();
 
-// bind logout button
-document.getElementById("logout")?.addEventListener("click", logoutPlayer);
 
-// start listeners when db exists
-function waitForDbAndStart() {
-  if (typeof db === 'undefined') {
-    setTimeout(waitForDbAndStart, 50);
+//----------------------------------------------------
+// OPEN MENU — FIX FOR IPHONE SAFARI
+//----------------------------------------------------
+window.openMenu = function(m) {
+
+  //--------------------------------------------
+  // MENU 2 — SPIN (iPhone must open instantly)
+  //--------------------------------------------
+  if (m === 2 && currentUser && currentUser.spinLink) {
+    window.open(currentUser.spinLink, "_blank");    // SAFE for iPhone
+    pushHistory(username, "ກົດເປີດ Spin");
     return;
   }
-  startPlayerListeners();
-}
-waitForDbAndStart();
+
+  //--------------------------------------------
+  // MENU 3 — LUCKY BOX
+  //--------------------------------------------
+  if (m === 3 && currentUser && currentUser.luckyLink) {
+    window.open(currentUser.luckyLink, "_blank");
+    pushHistory(username, "ກົດເປີດ Lucky Box");
+    return;
+  }
+
+  //--------------------------------------------
+  // MENU 5 / 6 — EVENT LINK
+  //--------------------------------------------
+  if ((m === 5 || m === 6) && currentUser && currentUser.eventLink) {
+    window.open(currentUser.eventLink, "_blank");
+    pushHistory(username, "ເປີດ Event");
+    return;
+  }
+
+  //--------------------------------------------
+  // OTHER MENUS (SHOW POPUP)
+  //--------------------------------------------
+  const popup = document.getElementById("popup");
+  const title = document.getElementById("popupTitle");
+  const body = document.getElementById("popupBody");
+
+  const desc = {
+    1: "ຄືນຍອດ 5%",
+    4: "ເບິ່ງຮູບໂປຣເຈກ",
+    5: "ກຳລັງມາໄວໆນີ້",
+    6: "ກຳລັງມາໄວໆນີ້"
+  };
+
+  title.textContent = `ເມນູ ${m}`;
+  body.textContent = desc[m] || "ບໍ່ມີຂໍ້ມູນ";
+  popup.style.display = "flex";
+
+  // History
+  pushHistory(username, `ເຂົ້າເມນູ ${m}`);
+};
 
 
-
-
-
-
-
-
-
-
+//----------------------------------------------------
+// POPUP CLOSE
+//----------------------------------------------------
+document.getElementById("popupClose").addEventListener("click", () => {
+  document.getElementById("popup").style.display = "none";
+});
