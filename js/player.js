@@ -78,17 +78,19 @@ function ensurePlayerSession() {
     }
   }
   
-  // --- open link safely in new tab ---
   function openLink(url) {
-    if (!url) return false;
-    try {
-      window.open(url, "_blank");
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  }
+  if (!url) return;
+
+  // iPhone Safari FIX
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+
+  // ຕົວເລືອກສຳຄັນສຳລັບ iPhone
+  a.click();
+}
+
   
   // --- CORE: menu handling ---
   // pendingMenu used to remember which menu the user opened while popup is shown
@@ -265,3 +267,4 @@ function ensurePlayerSession() {
   
   
   
+
