@@ -32,18 +32,36 @@ function setWhoAndCredit(u) {
   if (creditEl) creditEl.textContent = `ຍອດເສຍ: ${formatNumber(u.credit)}`;
 }
 
-// --- notify display ---
 function displayNotify(n) {
   const area = document.getElementById("notifyArea");
-  if (!area) return;
-  if (!n) { area.innerHTML = ""; return; }
+  if (!n) {
+    area.innerHTML = "";
+    return;
+  }
+
+  const time = new Date(n.ts).toLocaleString();
+
   area.innerHTML = `
-    <div style="border-radius:8px;padding:10px;background:linear-gradient(90deg,#e6f0ff,transparent);color:#031026">
-      ${n.msg}
-      <span class="small muted">(admin @ ${new Date(n.ts).toLocaleString()})</span>
+    <div id="notifyBox" class="notify-box notify-blink notify-pulse">
+      🔔 <b>${n.msg}</b>
+      <div class="small muted">(${time})</div>
     </div>
   `;
+
+  // 📱 ทำให้เครื่องสั่น (มือถือ)
+  if (navigator.vibrate) {
+    navigator.vibrate([120, 80, 120]);
+  }
+
+  // ปิดกระพริบหลัง 3 วินาที (แต่ข้อความยังอยู่)
+  setTimeout(() => {
+    const box = document.getElementById("notifyBox");
+    if (box) {
+      box.classList.remove("notify-blink");
+    }
+  }, 3000);
 }
+
 
 // --- history rendering (reads user history from Firebase) ---
 async function renderHistory() {
@@ -238,6 +256,7 @@ function waitForDbAndStart() {
   startPlayerListeners();
 }
 waitForDbAndStart();
+
 
 
 
