@@ -12,7 +12,7 @@
 </head>
 
 <body>
-   <!-- Chat Bubble (Messenger + WhatsApp) -->
+  <!-- Chat Bubble (Messenger + WhatsApp + Close Hide Forever) -->
 <div id="chat-bubble"
      style="
         position: fixed;
@@ -22,20 +22,21 @@
         font-family: sans-serif;
      ">
 
-    <!-- ปุ่มหลัก -->
-    <div onclick="document.getElementById('chat-options').style.display='block'"
+    <!-- ปุ่มเปิดแท็บ -->
+    <div id="chat-open-btn"
+         onclick="document.getElementById('chat-options').style.display='block'"
          style="
             background: #0084ff;
             color: #fff;
-            padding: 15px 20px;
-            border-radius: 50px;
+            padding: 5px 10px;
+            border-radius: 70px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 1px rgba(0,0,0,0.3);
             display: flex;
             align-items: center;
             gap: 10px;
          ">
-        💬 ຕິດຕໍ່ເເອັດມິນ
+         <img src="zaa.png" alt="" width="15%">ຕິດຕໍ່ເເອັດມິນ
     </div>
 
     <!-- ตัวเลือก Messenger + WhatsApp -->
@@ -47,8 +48,23 @@
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             padding: 10px;
+            width: 350px;
          ">
-         
+
+        <!-- ปุ่มปิด -->
+        <div onclick="
+            document.getElementById('chat-bubble').style.display='none';
+        "
+             style="
+                text-align: right;
+                cursor: pointer;
+                font-size: 18px;
+                margin-bottom: 5px;
+                color: #333;
+             ">
+            ✖
+        </div>
+
         <!-- Messenger -->
         <a href="https://m.me/leonet3377"
            target="_blank"
@@ -60,6 +76,7 @@
               border-radius: 8px;
               margin-bottom: 8px;
               border: 1px solid #0084ff;
+              text-align: center;
            ">
            💬 Messenger
         </a>
@@ -74,13 +91,13 @@
               padding: 10px;
               border-radius: 8px;
               border: 1px solid #25d366;
+              text-align: center;
            ">
            📱 WhatsApp
         </a>
 
     </div>
 </div>
-
 
 <div class="container">
 
@@ -210,6 +227,7 @@
 
 </body>
 </html>
+
 
 
 
