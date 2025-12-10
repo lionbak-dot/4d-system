@@ -70,13 +70,17 @@ html, body {
 }
 
 /* PANEL */
-.panel {
-  background: var(--panel);
-  padding: 18px;
-  border-radius: var(--radius);
-  border: 1px solid #e3e8f2;
-  box-shadow: var(--shadow);
-}
+/* PANEL */
+  .panel {
+    background: var(--panel);
+    padding: 5px;
+    border-radius: var(--radius);
+    border: 1px solid #e3e8f2;
+    box-shadow: var(--shadow);
+  }
+  .panel img{
+    border-radius: 5%;
+  }
 
 /* INPUTS */
 .input, select, textarea {
@@ -216,5 +220,6 @@ td, th {
   box-shadow: 0 0 10px rgba(0, 140, 255, 0.4);
   font-weight: bold;
 }
+
 
 
