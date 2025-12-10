@@ -101,22 +101,148 @@
 
 <div class="container">
 
-  <!-- HEADER -->
+  
   <div class="header">
     <div class="brand">
       <div class="logo">PLY</div>
-      <div>
+      <div class="title-group">
         <div class="h1">ເລືອກໂປຣໂມຊັ້ນຂອງທ່ານ</div>
-        <div id="who" class="small muted">ສະບາຍດີ, -</div>
+        <div id="who" class="small muted">ສະບາຍດີ, xang</div>
       </div>
     </div>
-
+  
     <div class="controls">
-      <div id="creditShow" class="small muted">ຍອດເສຍ: -</div>
-      <button id="toggleSound" class="btn btn-ghost">🔊 Sound</button>
-      <button id="logout" class="btn btn-ghost">ອອກລະບົບ</button>
+      <div id="creditShow" class="small muted credit-box">ຍອດເສຍ: 0</div>
+      <button id="toggleSound" class="btn btn-sound">
+        🔊 Sound
+      </button>
+      <button id="logout" class="btn btn-logout">ອອກລະບົບ</button>
     </div>
   </div>
+  
+<style>
+  /* Header หลัก */
+/* พื้นหลังรวมทั้งหน้า (ถ้าอยากได้โทนอ่อนแบบในภาพ) */
+body {
+  background: #e9f0f7;
+  font-family: 'Noto Sans Lao', system-ui, sans-serif;
+}
+
+/* กล่อง header ยาว ๆ แบบในรูป */
+.header {
+  max-width: 1100px;
+  margin: 15px auto;
+  padding: 14px 22px;
+  border-radius: 18px;
+  background: #767985;              /* เทาออกม่วงแบบในภาพ */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.28);
+}
+
+/* โลโก้ + ข้อความซ้าย */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo {
+  background: linear-gradient(135deg, #00ccff, #26c1ff);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 10px 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.7);
+}
+
+.title-group .h1 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.small {
+  font-size: 0.8rem;
+}
+
+.muted {
+  color: #d6d6d6;
+}
+
+/* ส่วนปุ่มด้านขวา */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* กล่องเครดิตโทนอ่อน */
+.credit-box {
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 244, 87, 0.25);
+  background: rgba(255, 237, 74, 0.08);
+  color: #e5e5e5;
+}
+
+/* ปุ่มพื้นฐาน */
+.btn {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  padding: 7px 16px;
+  transition: 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ปุ่ม Sound สีเทาเข้ม */
+.btn-sound {
+  background: #3b3f47;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+}
+
+.btn-sound:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.45);
+}
+
+/* ปุ่มออกระบบ ขอบแดง ตัวแดง พื้นโปร่ง */
+.btn-logout {
+  background: transparent;
+  border: 1px solid #00b6ce;
+  color: #000000;
+  padding: 7px 18px;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 82, 82, 0.15);
+}
+
+/* ทำให้ดูดีบนจอเล็ก */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .controls {
+    align-self: stretch;
+    justify-content: flex-end;
+    width: 100%;
+  }
+}
+
+</style>
 <img src="c.jpg" alt="" width="100%">
   <div style="height:12px"></div>
 <iframe width="100%" height="100%"
@@ -233,6 +359,7 @@
 
 </body>
 </html>
+
 
 
 
