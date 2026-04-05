@@ -484,11 +484,13 @@ body {
 }
 </style>
 <script>
-   $("#popupClose").click(function() {
-      $("#popupClose").hide();
-   });
-document.getElementById("popupClose").addEventListener("click",()=>{
 
+document.getElementById("popupClose").addEventListener("click",()=>{
+  //hide button
+   const btn = document.getElementById("popupClose");
+
+   // Hide the button
+   btn.style.display = "none";
   // layer
   const layer=document.createElement("div");
   layer.className="firework-layer";
