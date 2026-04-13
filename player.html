@@ -12,55 +12,413 @@
 </head>
 
 <body>
-   <style>
-/* customizable snowflake styling */
-.snowflake {
-  color: #fff;
-  font-size: 1em;
-  font-family: Arial, sans-serif;
-  text-shadow: 0 0 5px #000;
-}
+     <script>// thank you and credit : https://insurverse.co.th/
+    // ==============================================
+    // แทนที่จะใช้ particles.js สำหรับหลายรูปภาพ ซึ่งมีข้อจำกัด
+    // เราจะวาดลงบน canvas เองโดยตรง
+    // สร้าง particles แบบกำหนดเอง
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    document.body.appendChild(canvas);
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.zIndex = '1';
+    canvas.style.pointerEvents = 'none';
+    // ปรับขนาด canvas ให้เท่ากับหน้าจอ
+    function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    // กำหนด SVG หลายแบบ
+    var svgImages = [
+    // SVG หยดน้ำสีฟ้า
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="Layer_1" data-name="Layer 1" viewBox="0 0 200 200">
+    <defs>
+    <style>
+    .cls-1 {
+    fill: url(#linear-gradient-2);
+    }
+    .cls-2 {
+    fill: url(#linear-gradient);
+    fill-rule: evenodd;
+    }
+    </style>
+    <linearGradient id="linear-gradient" x1="35.8" y1="100" x2="164.2" y2="100" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#3fdeff"/>
+    <stop offset="1" stop-color="#00d3ff"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="1625.05" y1="-903.38" x2="1700.48" y2="-903.38" gradientTransform="translate(-1167.6 1562.93) rotate(-77.4) scale(1 -1)" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#fff"/>
+    <stop offset="1" stop-color="#3fdeff"/>
+    </linearGradient>
+    </defs>
+    <path class="cls-2" d="M164.2,130.8c0,35.46-28.74,64.2-64.2,64.2s-64.2-28.74-64.2-64.2S100,5,100,5c0,0,64.2,90.34,64.2,125.8Z"/>
+    <path class="cls-1" d="M66.58,99.78c.04-14.47-20.43,14.55-16.22,44.05,1.52,10.63,11.23,26.46,24.81,31.46,13.58,5,25.01-4.65,24.83-15.39-.38-22.95-33.49-32.93-33.42-60.12Z"/>
+    </svg>`,
+    // SVG หยดน้ำสีเขียว
+    `<svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 200 200">
+    <defs>
+    <style>
+    .cls-1 {
+    fill: #ffe939;
+    }
+    .cls-2 {
+    fill: #fff;
+    }
+    .cls-3 {
+    fill: #00bff1;
+    }
+    </style>
+    </defs>
+    <path class="cls-3" d="M168.86,195c0-7.47-3.06-10.53-10.53-10.53,7.47,0,10.53-3.06,10.53-10.53,0,7.47,3.06,10.53,10.53,10.53-7.47,0-10.53,3.06-10.53,10.53Z"/>
+    <path class="cls-1" d="M33.15,106.15c0-8.9-3.64-12.54-12.54-12.54,8.9,0,12.54-3.64,12.54-12.54,0,8.9,3.64,12.54,12.54,12.54-8.9,0-12.54,3.64-12.54,12.54Z"/>
+    <g>
+    <g>
+    <path class="cls-2" d="M96.11,101.04c-.04-.12-.11-.24-.17-.34-.08-.11-.16-.21-.25-.3-.46-.46-1.15-.67-1.78-.54-.13.03-.25.07-.37.1-.12.05-.24.12-.34.19-.11.08-.21.16-.3.25-.09.09-.17.2-.25.3-.07.11-.13.22-.17.34-.05.12-.09.24-.12.37-.03.12-.04.25-.04.38,0,.53.21,1.03.58,1.4.18.19.39.33.65.43.24.09.49.15.75.15.53,0,1.03-.21,1.4-.58.37-.37.58-.87.58-1.4,0-.13-.01-.26-.04-.38-.03-.13-.07-.25-.12-.37Z"/>
+    <path class="cls-2" d="M94.29,65.95c-1.09,0-1.98.88-1.98,1.98s.88,1.96,1.98,1.96,1.98-.88,1.98-1.96-.88-1.98-1.98-1.98Z"/>
+    <path class="cls-2" d="M94.29,79.49c-1.09,0-1.98.88-1.98,1.98s.88,1.98,1.98,1.98,1.98-.88,1.98-1.98-.88-1.98-1.98-1.98Z"/>
+    <path class="cls-2" d="M94.29,72.72c-1.09,0-1.98.88-1.98,1.98s.88,1.98,1.98,1.98,1.98-.88,1.98-1.98-.88-1.98-1.98-1.98Z"/>
+    <path class="cls-2" d="M94.29,93.05c-1.09,0-1.98.88-1.98,1.98s.88,1.98,1.98,1.98,1.98-.88,1.98-1.98-.88-1.98-1.98-1.98Z"/>
+    <path class="cls-2" d="M94.29,86.26c-1.09,0-1.98.9-1.98,1.99s.88,1.96,1.98,1.96,1.98-.88,1.98-1.96-.88-1.99-1.98-1.99Z"/>
+    <path class="cls-2" d="M94.29,11.74c-1.09,0-1.98.88-1.98,1.98s.88,1.98,1.98,1.98,1.98-.88,1.98-1.98-.88-1.98-1.98-1.98Z"/>
+    <path class="cls-2" d="M94.29,25.3c-1.09,0-1.98.88-1.98,1.98s.88,1.98,1.98,1.98,1.98-.88,1.98-1.98-.88-1.98-1.98-1.98Z"/>
+    <path class="cls-2" d="M94.29,32.07c-1.09,0-1.98.88-1.98,1.98s.88,1.98,1.98,1.98,1.98-.88,1.98-1.98-.88-1.98-1.98-1.98Z"/>
+    <path class="cls-2" d="M94.29,18.52c-1.09,0-1.98.9-1.98,1.99s.88,1.98,1.98,1.98,1.98-.9,1.98-1.98-.88-1.99-1.98-1.99Z"/>
+    <path class="cls-2" d="M94.29,38.84c-1.09,0-1.98.88-1.98,1.98s.88,1.98,1.98,1.98,1.98-.88,1.98-1.98-.88-1.98-1.98-1.98Z"/>
+    <path class="cls-2" d="M92.89,8.35c.18.19.39.33.65.43.24.09.49.15.75.15s.51-.05.75-.15c.25-.11.46-.25.65-.43.38-.38.58-.87.58-1.4s-.21-1.03-.58-1.4c-.74-.74-2.05-.74-2.79,0-.37.37-.58.88-.58,1.4,0,.26.05.51.14.75.11.25.25.46.43.65Z"/>
+    <path class="cls-2" d="M128.57,86.09c-.11-.06-.24-.09-.36-.12-.13-.02-.26-.04-.39-.04-.65,0-1.28.34-1.64.88-.08.11-.13.22-.19.33-.05.12-.08.25-.11.37-.02.13-.04.26-.04.39,0,.13.02.26.04.39.03.12.07.25.12.36.05.12.1.23.18.34.07.1.15.2.24.3.37.37.88.58,1.4.58.26,0,.51-.05.76-.15.23-.1.45-.24.63-.43.37-.37.58-.88.58-1.4,0-.52-.2-1.03-.58-1.4-.09-.09-.2-.18-.3-.24-.11-.08-.22-.13-.34-.18Z"/>
+    <path class="cls-2" d="M102.47,62.56c-.77.77-.77,2.02,0,2.79.76.76,2.01.76,2.79,0s.77-2.02,0-2.79c-.77-.77-2.02-.77-2.79,0Z"/>
+    <path class="cls-2" d="M112.04,72.14c-.77.77-.77,2.02,0,2.79.77.77,2.02.77,2.79,0s.77-2.02,0-2.79c-.77-.77-2.02-.77-2.79,0Z"/>
+    <path class="cls-2" d="M107.26,67.35c-.77.77-.77,2.02,0,2.79s2.02.77,2.79,0c.77-.77.77-2.02,0-2.79-.77-.77-2.02-.77-2.79,0Z"/>
+    <path class="cls-2" d="M121.63,81.72c-.77.77-.77,2.02,0,2.79.77.77,2.02.77,2.79,0,.77-.77.77-2.02,0-2.79-.77-.77-2.02-.77-2.79,0Z"/>
+    <path class="cls-2" d="M116.83,76.93c-.77.77-.76,2.03,0,2.8s2.01.76,2.79,0c.77-.77.77-2.02,0-2.79-.77-.77-2.03-.78-2.8,0Z"/>
+    <path class="cls-2" d="M64.14,24.23c-.77.77-.77,2.02,0,2.79.77.77,2.02.77,2.79,0,.77-.77.77-2.02,0-2.79-.77-.77-2.02-.77-2.79,0Z"/>
+    <path class="cls-2" d="M73.72,33.82c-.77.77-.77,2.02,0,2.79.77.77,2.02.77,2.79,0s.77-2.02,0-2.79c-.77-.77-2.02-.77-2.79,0Z"/>
+    <path class="cls-2" d="M78.51,38.61c-.77.77-.77,2.02,0,2.79.77.77,2.02.77,2.79,0,.77-.77.77-2.02,0-2.79-.77-.77-2.02-.77-2.79,0Z"/>
+    <path class="cls-2" d="M68.93,29.02c-.77.77-.76,2.03,0,2.8.76.76,2.02.77,2.79,0s.76-2.03,0-2.79c-.77-.77-2.03-.78-2.8,0Z"/>
+    <path class="cls-2" d="M83.3,43.39c-.77.77-.77,2.02,0,2.79.77.77,2.02.77,2.79,0s.77-2.02,0-2.79c-.77-.77-2.02-.77-2.79,0Z"/>
+    <path class="cls-2" d="M60.75,22.82c.26,0,.51-.05.76-.15.23-.1.45-.24.63-.43s.33-.4.43-.63c.1-.25.15-.5.15-.76,0-.54-.2-1.03-.58-1.4s-.88-.58-1.4-.58c-1.04,0-1.97.93-1.97,1.97,0,.52.21,1.03.58,1.4.19.19.4.33.63.43.25.1.5.15.76.15Z"/>
+    <path class="cls-2" d="M140.95,52.57c-.12.04-.24.11-.34.17-.11.08-.21.16-.3.25-.46.46-.67,1.15-.54,1.78.03.13.07.25.1.37.05.12.12.24.19.34.08.11.16.21.25.3.09.09.2.17.3.25.11.07.22.13.34.17.12.05.24.09.37.12.12.03.25.04.38.04.53,0,1.03-.21,1.4-.58.19-.18.33-.39.43-.65.09-.24.15-.49.15-.75,0-.53-.21-1.03-.58-1.4-.37-.37-.87-.58-1.4-.58-.13,0-.26.01-.38.04-.13.03-.25.07-.37.12Z"/>
+    <path class="cls-2" d="M105.86,54.39c0,1.09.88,1.98,1.98,1.98s1.96-.88,1.96-1.98-.88-1.98-1.96-1.98-1.98.88-1.98,1.98Z"/>
+    <path class="cls-2" d="M119.4,54.39c0,1.09.88,1.98,1.98,1.98s1.98-.88,1.98-1.98-.88-1.98-1.98-1.98-1.98.88-1.98,1.98Z"/>
+    <path class="cls-2" d="M112.63,54.39c0,1.09.88,1.98,1.98,1.98s1.98-.88,1.98-1.98-.88-1.98-1.98-1.98-1.98.88-1.98,1.98Z"/>
+    <path class="cls-2" d="M132.95,54.39c0,1.09.88,1.98,1.98,1.98s1.98-.88,1.98-1.98-.88-1.98-1.98-1.98-1.98.88-1.98,1.98Z"/>
+    <path class="cls-2" d="M126.17,54.39c0,1.09.9,1.98,1.99,1.98s1.96-.88,1.96-1.98-.88-1.98-1.96-1.98-1.99.88-1.99,1.98Z"/>
+    <path class="cls-2" d="M51.65,54.39c0,1.09.88,1.98,1.98,1.98s1.98-.88,1.98-1.98-.88-1.98-1.98-1.98-1.98.88-1.98,1.98Z"/>
+    <path class="cls-2" d="M65.2,54.39c0,1.09.88,1.98,1.98,1.98s1.98-.88,1.98-1.98-.88-1.98-1.98-1.98-1.98.88-1.98,1.98Z"/>
+    <path class="cls-2" d="M71.98,54.39c0,1.09.88,1.98,1.98,1.98s1.98-.88,1.98-1.98-.88-1.98-1.98-1.98-1.98.88-1.98,1.98Z"/>
+    <path class="cls-2" d="M58.42,54.39c0,1.09.9,1.98,1.99,1.98s1.98-.88,1.98-1.98-.9-1.98-1.98-1.98-1.99.88-1.99,1.98Z"/>
+    <path class="cls-2" d="M78.75,54.39c0,1.09.88,1.98,1.98,1.98s1.98-.88,1.98-1.98-.88-1.98-1.98-1.98-1.98.88-1.98,1.98Z"/>
+    <path class="cls-2" d="M48.25,55.78c.19-.18.33-.39.43-.65.09-.24.15-.49.15-.75s-.05-.51-.15-.75c-.11-.25-.25-.46-.43-.65-.38-.38-.87-.58-1.4-.58s-1.03.21-1.4.58c-.74.74-.74,2.05,0,2.79.37.37.88.58,1.4.58.26,0,.51-.05.75-.14.25-.11.46-.25.65-.43Z"/>
+    <path class="cls-2" d="M126,20.11c-.06.11-.09.24-.12.36-.02.13-.04.26-.04.39,0,.65.34,1.28.88,1.64.11.08.22.13.33.19.12.05.25.08.37.11.13.02.26.04.39.04.13,0,.26-.02.39-.04.12-.03.25-.07.36-.12.12-.05.23-.1.34-.18.1-.07.2-.15.3-.24.37-.37.58-.88.58-1.4,0-.26-.05-.51-.15-.76-.1-.23-.24-.45-.43-.63-.37-.37-.88-.58-1.4-.58-.52,0-1.03.2-1.4.58-.09.09-.18.2-.24.3-.08.11-.13.22-.18.34Z"/>
+    <path class="cls-2" d="M102.47,46.21c.77.77,2.02.77,2.79,0,.76-.76.76-2.01,0-2.79-.77-.77-2.02-.77-2.79,0-.77.77-.77,2.02,0,2.79Z"/>
+    <path class="cls-2" d="M112.04,36.63c.77.77,2.02.77,2.79,0,.77-.77.77-2.02,0-2.79-.77-.77-2.02-.77-2.79,0s-.77,2.02,0,2.79Z"/>
+    <path class="cls-2" d="M107.26,41.42c.77.77,2.02.77,2.79,0,.77-.77.77-2.02,0-2.79-.77-.77-2.02-.77-2.79,0-.77.77-.77,2.02,0,2.79Z"/>
+    <path class="cls-2" d="M121.63,27.05c.77.77,2.02.77,2.79,0,.77-.77.77-2.02,0-2.79-.77-.77-2.02-.77-2.79,0-.77.77-.77,2.02,0,2.79Z"/>
+    <path class="cls-2" d="M116.83,31.84c.77.77,2.03.76,2.8,0,.76-.76.76-2.01,0-2.79-.77-.77-2.02-.77-2.79,0s-.78,2.03,0,2.8Z"/>
+    <path class="cls-2" d="M64.14,84.54c.77.77,2.02.77,2.79,0s.77-2.02,0-2.79c-.77-.77-2.02-.77-2.79,0s-.77,2.02,0,2.79Z"/>
+    <path class="cls-2" d="M73.72,74.95c.77.77,2.02.77,2.79,0s.77-2.02,0-2.79c-.77-.77-2.02-.77-2.79,0s-.77,2.02,0,2.79Z"/>
+    <path class="cls-2" d="M78.51,70.17c.77.77,2.02.77,2.79,0s.77-2.02,0-2.79c-.77-.77-2.02-.77-2.79,0s-.77,2.02,0,2.79Z"/>
+    <path class="cls-2" d="M68.93,79.75c.77.77,2.03.76,2.8,0,.76-.76.77-2.02,0-2.79-.77-.77-2.03-.76-2.79,0s-.78,2.03,0,2.8Z"/>
+    <path class="cls-2" d="M83.3,65.38c.77.77,2.02.77,2.79,0,.77-.77.77-2.02,0-2.79-.77-.77-2.02-.77-2.79,0-.77.77-.77,2.02,0,2.79Z"/>
+    <path class="cls-2" d="M62.72,87.93c0-.26-.05-.51-.15-.76-.1-.23-.24-.45-.43-.63s-.4-.33-.63-.43c-.25-.1-.5-.15-.76-.15-.54,0-1.03.2-1.4.58s-.58.88-.58,1.4c0,1.04.93,1.97,1.97,1.97.52,0,1.03-.21,1.4-.58.19-.19.33-.4.43-.63.1-.25.15-.5.15-.76Z"/>
+    </g>
+    <g>
+    <rect class="cls-2" x="82.51" y="13.74" width=".66" height="24.95" transform="translate(-3.76 33.34) rotate(-22.26)"/>
+    <rect class="cls-2" x="66.08" y="30.03" width=".66" height="24.95" transform="translate(1.54 87.33) rotate(-67.26)"/>
+    <rect class="cls-2" x="53.84" y="65.31" width="24.95" height=".66" transform="translate(-19.92 30.01) rotate(-22.26)"/>
+    <rect class="cls-2" x="70.13" y="81.74" width="24.95" height=".66" transform="translate(-25.03 126.5) rotate(-67.24)"/>
+    <rect class="cls-2" x="105.41" y="69.69" width=".66" height="24.95" transform="translate(-23.25 46.19) rotate(-22.26)"/>
+    <rect class="cls-2" x="121.84" y="53.4" width=".66" height="24.95" transform="translate(14.2 153.09) rotate(-67.26)"/>
+    <rect class="cls-2" x="109.79" y="42.41" width="24.95" height=".66" transform="translate(-7.08 49.5) rotate(-22.26)"/>
+    <rect class="cls-2" x="93.5" y="25.98" width="24.95" height=".66" transform="translate(40.72 113.86) rotate(-67.24)"/>
+    </g>
+    </g>
+    </svg>`,
+    // SVG หยดน้ำสีม่วง
+    `<svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 200 200">
+    <defs>
+    <style>
+    .cls-1 {
+    fill: #fff;
+    }
+    .cls-1, .cls-2 {
+    fill-rule: evenodd;
+    }
+    .cls-2 {
+    fill: #fec032;
+    }
+    </style>
+    </defs>
+    <path class="cls-1" d="M100.21,10.14c16.35,1.88,18.78,55.86,18.78,55.86,0,0,19.63-13.47,43.5-11.16,8.64.84,15.91,1.62,21.68,2.28,8.52.98,13.55,10.09,9.77,17.78-2.57,5.23-6.15,11.25-11.05,17.27-13.47,16.55-40.8,22.71-40.8,22.71,0,0,13.09,10.39,18.09,26.95,3.03,10.03,2.11,23.44.91,32.46-.84,6.28-6.25,11.02-12.59,10.8-6.79-.24-16.22-1.87-26.82-7.46-21.17-11.16-25.02-19.63-25.02-19.63,0,0-4.23,17.71-26.56,25.4-8.73,3.01-16.28,5.31-22.24,7-7.83,2.22-15.64-3.51-15.86-11.65-.17-6.65,0-14.79,1.14-23.07,2.69-19.63,10.78-25.41,10.78-25.41,0,0-13.47-2.69-26.94-22.71-6.29-9.35-9.56-17.18-11.26-22.88-1.84-6.16,1.4-12.72,7.39-15.04,5.19-2,12.39-3.83,21.19-3.65,18.86.39,25.79,5.78,25.79,5.78,0,0,12.04-64.86,40.12-61.63Z"/>
+    <path class="cls-2" d="M89.35,73.31s-5.77,7.7-.77,18.09c5,10.39,7.7,12.7-2.69,11.93-10.39-.77-23.87-2.69-20.4,3.46,3.46,6.16,26.18,4.62,26.18,8.08s-12.32,16.17-10.01,21.17,16.55-18.09,19.25-17.32c2.7.77,8.47,33.49,14.24,21.56,5.77-11.93-10.78-25.02-6.16-25.02s34.64-5.39,25.02-8.85c-9.62-3.46-28.1,2.69-27.72-2.31.39-5,26.08-18.67,13.76-23.1-12.32-4.43-17.13,27.43-20.4,17.61-3.27-9.82,3.18-35.32-10.3-25.31h0Z"/>
+    </svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 200 200">
+    <defs>
+    <style>
+    .cls-1 {
+    fill: #977cde;
+    }
+    .cls-2 {
+    fill: #ff8de5;
+    }
+    .cls-3 {
+    fill: #1de6c1;
+    }
+    </style>
+    </defs>
+    <path class="cls-1" d="M116.7,47.24c0-11.47-4.69-16.16-16.16-16.16,11.47,0,16.16-4.69,16.16-16.16,0,11.47,4.69,16.16,16.16,16.16-11.47,0-16.16,4.69-16.16,16.16Z"/>
+    <path class="cls-2" d="M35.45,114.92c0-11.47-4.69-16.16-16.16-16.16,11.47,0,16.16-4.69,16.16-16.16,0,11.47,4.69,16.16,16.16,16.16-11.47,0-16.16,4.69-16.16,16.16Z"/>
+    <path class="cls-3" d="M158.82,128.23c0-6.67-2.73-9.39-9.39-9.39,6.67,0,9.39-2.73,9.39-9.39,0,6.67,2.73,9.39,9.39,9.39-6.67,0-9.39,2.73-9.39,9.39Z"/>
+    </svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="Layer_1" data-name="Layer 1" viewBox="0 0 200 200">
+    <defs>
+    <style>
+    .cls-1 {
+    fill: url(#linear-gradient-3);
+    }
+    .cls-1, .cls-2, .cls-3, .cls-4 {
+    fill-rule: evenodd;
+    }
+    .cls-2 {
+    fill: #fff;
+    }
+    .cls-5 {
+    fill: url(#linear-gradient-4);
+    }
+    .cls-6 {
+    fill: url(#linear-gradient-2);
+    }
+    .cls-3 {
+    fill: #fec032;
+    }
+    .cls-4 {
+    fill: url(#linear-gradient);
+    }
+    </style>
+    <linearGradient id="linear-gradient" x1="59.3" y1="117.68" x2="140.7" y2="117.68" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#3fdeff"/>
+    <stop offset="1" stop-color="#00d3ff"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="1263.98" y1="-1377.87" x2="1311.8" y2="-1377.87" gradientTransform="translate(-1540.37 1097.66) rotate(-77.4) scale(1 -1)" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#fff"/>
+    <stop offset="1" stop-color="#3fdeff"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-3" x1="16.23" y1="35.66" x2="41.37" y2="35.66" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-4" x1="1363.16" y1="-1296.92" x2="1377.93" y2="-1296.92" xlink:href="#linear-gradient-2"/>
+    </defs>
+    <g>
+    <path class="cls-2" d="M157.2,36.04c2.97.34,3.41,10.16,3.41,10.16,0,0,3.57-2.45,7.91-2.03,1.57.15,2.89.29,3.94.42,1.55.18,2.46,1.83,1.78,3.23-.47.95-1.12,2.05-2.01,3.14-2.45,3.01-7.42,4.13-7.42,4.13,0,0,2.38,1.89,3.29,4.9.55,1.82.38,4.26.17,5.9-.15,1.14-1.14,2-2.29,1.96-1.23-.04-2.95-.34-4.88-1.36-3.85-2.03-4.55-3.57-4.55-3.57,0,0-.77,3.22-4.83,4.62-1.59.55-2.96.97-4.04,1.27-1.42.4-2.84-.64-2.88-2.12-.03-1.21,0-2.69.21-4.2.49-3.57,1.96-4.62,1.96-4.62,0,0-2.45-.49-4.9-4.13-1.14-1.7-1.74-3.12-2.05-4.16-.33-1.12.25-2.31,1.34-2.73.94-.36,2.25-.7,3.85-.66,3.43.07,4.69,1.05,4.69,1.05,0,0,2.19-11.79,7.3-11.21Z"/>
+    <path class="cls-3" d="M155.23,47.53s-1.05,1.4-.14,3.29c.91,1.89,1.4,2.31-.49,2.17-1.89-.14-4.34-.49-3.71.63.63,1.12,4.76.84,4.76,1.47s-2.24,2.94-1.82,3.85,3.01-3.29,3.5-3.15c.49.14,1.54,6.09,2.59,3.92s-1.96-4.55-1.12-4.55,6.3-.98,4.55-1.61c-1.75-.63-5.11.49-5.04-.42.07-.91,4.74-3.4,2.5-4.2-2.24-.8-3.12,4.99-3.71,3.2-.59-1.78.58-6.42-1.87-4.6h0Z"/>
+    </g>
+    <g>
+    <path class="cls-4" d="M140.7,137.21c0,22.48-18.22,40.7-40.7,40.7s-40.7-18.22-40.7-40.7,40.7-79.75,40.7-79.75c0,0,40.7,57.27,40.7,79.75Z"/>
+    <path class="cls-6" d="M78.82,117.55c.02-9.17-12.95,9.22-10.28,27.93.96,6.74,7.12,16.77,15.73,19.94,8.61,3.17,15.85-2.95,15.74-9.76-.24-14.55-21.23-20.87-21.18-38.11Z"/>
+    </g>
+    <g>
+    <path class="cls-1" d="M41.37,41.7c0,6.94-5.63,12.57-12.57,12.57s-12.57-5.63-12.57-12.57,12.57-24.64,12.57-24.64c0,0,12.57,17.69,12.57,24.64Z"/>
+    <path class="cls-5" d="M22.25,35.62c0-2.83-4,2.85-3.18,8.63.3,2.08,2.2,5.18,4.86,6.16,2.66.98,4.9-.91,4.86-3.01-.07-4.49-6.56-6.45-6.54-11.77Z"/>
+    </g>
+    </svg>`
+    ];
+    // แปลง SVGs เป็นรูปภาพที่ใช้งานได้
+    var dropImages = [];
+    var loadedCount = 0;
+    svgImages.forEach(function(svg, index) {
+    var img = new Image();
+    var blob = new Blob([svg], {
+    type: 'image/svg+xml'
+    });
+    var url = URL.createObjectURL(blob);
+    img.onload = function() {
+    dropImages[index] = img;
+    loadedCount++;
+    if (loadedCount === svgImages.length) {
+    initParticles(); // เริ่มต้นระบบอนุภาคเมื่อโหลดรูปภาพเสร็จแล้วทั้งหมด
+    }
+    };
+    img.src = url;
+    });
+    var particles = [];
+    var currentSide = 'none'; // เริ่มโดยไม่สาดจากด้านไหน
+    var splashState = 0; // ใช้ตัวแปรนี้เพื่อเก็บสถานะปัจจุบัน (0: สาดซ้าย, 1: พัก 1.5 วิ, 2: สาดขวา, 3: พัก 8 วิ)
+    var lastStateTime = 0; // เวลาล่าสุดที่เปลี่ยนสถานะ
+    var particlesPerSplash = 50; // จำนวน particles ต่อการสาดหนึ่งครั้ง
+    function updateSplashState() {
+    var currentTime = Date.now();
+    var elapsedTime = currentTime - lastStateTime;
+    // ตรวจสอบสถานะปัจจุบันและเปลี่ยนไปยังสถานะถัดไปตามเวลาที่กำหนด
+    if (splashState === 0) { // สาดซ้าย
+    if (currentSide !== 'left') {
+    currentSide = 'left';
+    createSplash('left');
+    }
+    // เปลี่ยนไปยังสถานะพัก 1.5 วินาทีหลังจากสาดเสร็จ
+    if (elapsedTime >= 100) { // สาดประมาณ 0.1 วินาที
+    splashState = 1;
+    currentSide = 'none';
+    lastStateTime = currentTime;
+    }
+    } else if (splashState === 1) { // พัก 1.5 วินาที
+    if (elapsedTime >= 1500) { // 1.5 วินาที
+    splashState = 2;
+    lastStateTime = currentTime;
+    }
+    } else if (splashState === 2) { // สาดขวา
+    if (currentSide !== 'right') {
+    currentSide = 'right';
+    createSplash('right');
+    }
+    // เปลี่ยนไปยังสถานะพัก 8 วินาทีหลังจากสาดเสร็จ
+    if (elapsedTime >= 100) { // สาดประมาณ 0.1 วินาที
+    splashState = 3;
+    currentSide = 'none';
+    lastStateTime = currentTime;
+    }
+    } else if (splashState === 3) { // พัก 8 วินาที
+    if (elapsedTime >= 8000) { // 8 วินาที
+    splashState = 0; // กลับไปเริ่มที่สถานะ 0 (สาดซ้าย)
+    lastStateTime = currentTime;
+    }
+    }
+    }
+    function Particle(side) {
+    // ตำแหน่งเริ่มต้นขึ้นอยู่กับด้านที่สาด
+    if (side === 'left') {
+    this.x = -10; // เริ่มจากนอกหน้าจอด้านซ้ายเล็กน้อย
+    this.directionX = Math.random() * 20 + 10; // แรงสาดไปทางขวา
+    } else {
+    this.x = canvas.width + 10; // เริ่มจากนอกหน้าจอด้านขวาเล็กน้อย
+    this.directionX = -Math.random() * 20 - 10; // แรงสาดไปทางซ้าย
+    }
+    // สุ่มความสูงในช่วงกลางของหน้าจอ (ไม่ต่ำหรือสูงเกินไป)
+    this.y = canvas.height * 0.08 + Math.random() * (canvas.height * 0.5);
+    // ความเร็วในแนวตั้งเล็กน้อย (เพื่อให้น้ำพุ่งในแนวระนาบเป็นหลัก)
+    this.initialVelocityY = (Math.random() - 0.5) * 3;
+    this.size = Math.random() * 35 + 18; // ขนาดระหว่าง 8-23
+    this.gravity = Math.random() * 0.12 + 0.05; // แรงโน้มถ่วงที่ดึงลงมา
+    this.imageIndex = Math.floor(Math.random() * dropImages.length); // สุ่มเลือกรูปภาพ
+    this.opacity = Math.random() * 0.4 + 0.7; // ความโปร่งใสระหว่าง 0.4-1.0
+    this.velocityY = this.initialVelocityY; // ความเร็วในแนวตั้งเริ่มต้น
+    this.rotation = Math.random() * 360; // การหมุน
+    this.rotationSpeed = (Math.random() - 0.5) * 4; // ความเร็วในการหมุน
+    this.active = true; // ใช้ตรวจสอบว่าอนุภาคยังอยู่ในการใช้งานหรือไม่
+    this.age = 0; // อายุของอนุภาค (เฟรม)
+    this.side = side; // เก็บด้านที่อนุภาคถูกสร้าง
+    // ลดความเร็วลงเมื่อเวลาผ่านไป
+    this.speedDecay = 0.99;
+    }
+    function createSplash(side) {
+    // สร้างกลุ่มอนุภาคใหม่สำหรับการสาดน้ำ
+    for (var i = 0; i < particlesPerSplash; i++) {
+    particles.push(new Particle(side));
+    }
+    }
+    function initParticles() {
+    // เริ่มต้นตั้งค่าเวลาเริ่มต้น
+    lastStateTime = Date.now();
+    animate();
+    }
+    function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    updateSplashState();
+    // จัดการและวาดแต่ละอนุภาค
+    for (var i = 0; i < particles.length; i++) {
+    var p = particles[i];
+    if (!p.active) continue; // ข้ามอนุภาคที่ไม่ได้ใช้งาน
+    // เพิ่มอายุ
+    p.age++;
+    // ปรับความเร็วในแนวตั้งตามแรงโน้มถ่วง
+    p.velocityY += p.gravity;
+    // ปรับตำแหน่งตามความเร็ว
+    p.y += p.velocityY;
+    p.x += p.directionX;
+    // ลดความเร็วในแนวนอนเล็กน้อยเพื่อจำลองแรงต้าน
+    p.directionX *= p.speedDecay;
+    // หมุนหยดน้ำ
+    p.rotation += p.rotationSpeed;
+    // ลดความโปร่งใสเมื่อเวลาผ่านไป
+    if (p.age > 60) { // เริ่มลดความโปร่งใสหลังจาก 60 เฟรม
+    p.opacity -= 0.01;
+    }
+    // ตรวจสอบว่าอนุภาคควรยังคงใช้งานหรือไม่
+    if (p.y > canvas.height + p.size || p.y < -p.size ||
+    p.x < -p.size * 2 || p.x > canvas.width + p.size * 2 ||
+    p.opacity <= 0) {
+    p.active = false;
+    continue;
+    }
+    // วาดอนุภาค
+    ctx.save();
+    ctx.globalAlpha = p.opacity;
+    // หมุนรูปภาพ
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation * Math.PI / 180);
+    ctx.drawImage(
+    dropImages[p.imageIndex],
+    -p.size / 2,
+    -p.size / 2,
+    p.size,
+    p.size
+    );
+    ctx.restore();
+    }
+    // ลบอนุภาคที่ไม่ได้ใช้งานออกจากอาร์เรย์
+    particles = particles.filter(p => p.active);
+    // อัปเดตจำนวนอนุภาคที่แสดง
+    // document.querySelector('.js-count-particles').textContent = particles.length;
+    requestAnimationFrame(animate);
+    }
+    // รองรับการโต้ตอบ - ผลักอนุภาคเมื่อเมาส์เคลื่อนที่
+    var mouse = {
+    x: null,
+    y: null
+    };
+    canvas.addEventListener('mousemove', function(e) {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    // ผลักอนุภาคเมื่อเมาส์เคลื่อนที่
+    particles.forEach(function(p) {
+    if (!p.active) return;
+    var dx = p.x - mouse.x;
+    var dy = p.y - mouse.y;
+    var distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance < 50) { // รัศมีผลักอนุภาค
+    var angle = Math.atan2(dy, dx);
+    var force = (50 - distance) / 10;
+    p.x += Math.cos(angle) * force;
+    p.y += Math.sin(angle) * force;
+    }
+    });
+    });
+    // เพิ่มอนุภาคเมื่อคลิก
+    document.body.addEventListener('click', function(e) {
+    // ตำแหน่งที่คลิก
+    var x = e.clientX;
+    var y = e.clientY;
+    // สร้าง particles ที่ตำแหน่งที่คลิก โดยไม่ต้องสนใจว่าคลิกที่อะไร
+    for (var i = 0; i < 15; i++) {
+    var p = new Particle(Math.random() > 0.5 ? 'left' : 'right');
+    p.x = x;
+    p.y = y;
+    // สุ่มทิศทางการเคลื่อนที่แบบกระจาย 360 องศา
+    var angle = Math.random() * Math.PI * 2;
+    var speed = Math.random() * 5 + 3;
+    p.directionX = Math.cos(angle) * speed;
+    p.velocityY = Math.sin(angle) * speed;
+    p.imageIndex = Math.floor(Math.random() * dropImages.length);
+    particles.push(p);
+    }
+    // ไม่ต้องใช้ e.preventDefault() หรือ e.stopPropagation()
+    // เพื่อให้การคลิกยังคงส่งต่อไปยังปุ่มหรือองค์ประกอบอื่นๆ ตามปกติ
+    }, true); // true คือการใช้ capture phase
+    </script>
 
-.snowflake,.snowflake .inner{animation-iteration-count:infinite;animation-play-state:running}@keyframes snowflakes-fall{0%{transform:translateY(0)}100%{transform:translateY(110vh)}}@keyframes snowflakes-shake{0%,100%{transform:translateX(0)}50%{transform:translateX(80px)}}.snowflake{position:fixed;top:-10%;z-index:9999;-webkit-user-select:none;user-select:none;cursor:default;pointer-events:none;animation-name:snowflakes-shake;animation-duration:3s;animation-timing-function:ease-in-out}.snowflake .inner{animation-duration:10s;animation-name:snowflakes-fall;animation-timing-function:linear}.snowflake:nth-of-type(0){left:1%;animation-delay:0s}.snowflake:nth-of-type(0) .inner{animation-delay:0s}.snowflake:first-of-type{left:10%;animation-delay:1s}.snowflake:first-of-type .inner,.snowflake:nth-of-type(8) .inner{animation-delay:1s}.snowflake:nth-of-type(2){left:20%;animation-delay:.5s}.snowflake:nth-of-type(2) .inner,.snowflake:nth-of-type(6) .inner{animation-delay:6s}.snowflake:nth-of-type(3){left:30%;animation-delay:2s}.snowflake:nth-of-type(11) .inner,.snowflake:nth-of-type(3) .inner{animation-delay:4s}.snowflake:nth-of-type(4){left:40%;animation-delay:2s}.snowflake:nth-of-type(10) .inner,.snowflake:nth-of-type(4) .inner{animation-delay:2s}.snowflake:nth-of-type(5){left:50%;animation-delay:3s}.snowflake:nth-of-type(5) .inner{animation-delay:8s}.snowflake:nth-of-type(6){left:60%;animation-delay:2s}.snowflake:nth-of-type(7){left:70%;animation-delay:1s}.snowflake:nth-of-type(7) .inner{animation-delay:2.5s}.snowflake:nth-of-type(8){left:80%;animation-delay:0s}.snowflake:nth-of-type(9){left:90%;animation-delay:1.5s}.snowflake:nth-of-type(9) .inner{animation-delay:3s}.snowflake:nth-of-type(10){left:25%;animation-delay:0s}.snowflake:nth-of-type(11){left:65%;animation-delay:2.5s}
-</style>
-<div class="snowflakes" aria-hidden="true">
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-  <div class="snowflake">
-    <div class="inner">❅</div>
-  </div>
-</div>
 
   <!-- Chat Bubble (Messenger + WhatsApp + Close Hide Forever) -->
 <div id="chat-bubble"
