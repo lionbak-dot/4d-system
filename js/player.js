@@ -102,7 +102,13 @@ function ensurePlayerSession() {
     const popup = document.getElementById("popup");
     const title = document.getElementById("popupTitle");
     const body = document.getElementById("popupBody");
+    const closeButton = document.getElementById("popupClose");
     if (!popup || !title || !body) return;
+
+    if (closeButton) {
+      closeButton.style.display = 'inline-block';
+      closeButton.textContent = 'ເປີດ';
+    }
   
     title.textContent = `ເມນູ ${m}`;
     // short descriptions (you can customize)
@@ -156,6 +162,11 @@ function ensurePlayerSession() {
       const body = document.getElementById("popupBody");
       title.textContent = "ເມນູ 1 • ຄືນຍອດ 5%  ";
       body.innerHTML = `ຍອດເສຍ: ${formatNumber(credit)}<br>5% = ${formatNumber(refund)}`;
+      const closeButton = document.getElementById("popupClose");
+      if (closeButton) {
+        closeButton.style.display = 'inline-block';
+        closeButton.textContent = 'ປິດ';
+      }
       if (popup) popup.style.display = "flex";
       await pushHistory(username, `ເມນູ 1 • ຄືນຍອດ ${formatNumber(refund)}`);
       return;
@@ -228,6 +239,12 @@ function ensurePlayerSession() {
         window.location.href = "login.html";
         return;
       }
+      if (u.active === false) {
+        removePlayerSession();
+        alert("บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อแอดมิน");
+        window.location.href = "login.html";
+        return;
+      }
       currentUser = u;
       setWhoAndCredit(u);
       renderHistory();
@@ -240,6 +257,13 @@ function ensurePlayerSession() {
     watchLastWinner(lw => {
       // optional: show toast or banner
       // console.log("lastWinner updated", lw);
+    });
+
+    watchPromotionVisibility(value => {
+      document.querySelectorAll('[data-menu]').forEach(card => {
+        const enabled = value[String(card.dataset.menu)] !== false;
+        card.style.display = enabled ? '' : 'none';
+      });
     });
   }
   

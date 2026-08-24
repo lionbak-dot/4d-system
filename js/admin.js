@@ -1,5 +1,8 @@
 // js/admin.js (Firebase-backed)
 
+const AUTHORIZED_ADMIN_UID = 'X14VGAI35NNtBYIJKRYTb8OVCMQ2';
+let adminListenersStarted = false;
+
 function showAdminArea(username) {
     document.getElementById("adminArea").style.display = "block";
     document.getElementById("loginGuard").style.display = "none";
@@ -7,40 +10,39 @@ function showAdminArea(username) {
   }
   
   function guardAdmin() {
-    const s = readAdminSession();
-    if (!s || !s.username) {
+    firebase.auth().onAuthStateChanged(async user => {
+      if (!user || user.uid !== AUTHORIZED_ADMIN_UID) {
+        if (user) await firebase.auth().signOut();
       document.getElementById("adminArea").style.display = "none";
       document.getElementById("loginGuard").style.display = "block";
-    } else {
-      showAdminArea(s.username);
-    }
+        return;
+      }
+
+      showAdminArea(user.email || 'Admin');
+      if (!adminListenersStarted) {
+        adminListenersStarted = true;
+        startAdminListeners();
+      }
+    });
   }
   
   // Admin login (replace previous localStorage-based flow)
   document.getElementById('doAdminLogin').addEventListener('click', async () => {
-    const user = document.getElementById('adminUser').value.trim();
+    const email = document.getElementById('adminUser').value.trim();
     const pass = document.getElementById('adminPass').value;
   
-    if (!user || !pass) { alert('กรอกข้อมูล'); return; }
+    if (!email || !pass) { alert('กรอกอีเมลและรหัสผ่าน'); return; }
   
     try {
-      await ensureDefaultAdmin();
+      const credential = await firebase.auth().signInWithEmailAndPassword(email, pass);
+      if (!credential.user || credential.user.uid !== AUTHORIZED_ADMIN_UID) {
+        await firebase.auth().signOut();
+        alert('บัญชีนี้ไม่ได้รับสิทธิ์แอดมิน');
+      }
     } catch (error) {
-      console.error('Unable to initialize admin account:', error);
-      alert('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
-      return;
+      console.error('Admin sign-in failed:', error.code || error);
+      alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
     }
-
-    const u = await getUserCaseInsensitive(user);
-    if (!u || u.role !== 'admin' || String(u.password) !== String(pass)) {
-      alert("Admin credentials invalid");
-      return;
-    }
-  
-    saveAdminSession({ username: user, ts: Date.now() });
-    showAdminArea(user);
-    // start listeners
-    startAdminListeners();
   });
 
   document.getElementById('adminPass').addEventListener('keydown', (event) => {
@@ -48,8 +50,8 @@ function showAdminArea(username) {
   });
   
   // logout
-  document.getElementById('logoutAdmin').addEventListener('click', () => {
-    removeAdminSession();
+  document.getElementById('logoutAdmin').addEventListener('click', async () => {
+    await firebase.auth().signOut();
     location.reload();
   });
   
@@ -66,7 +68,8 @@ function showAdminArea(username) {
     const eventLink = document.getElementById("u_eventLink").value.trim();
     const imgFile = document.getElementById("u_img").files[0];
   
-    function doSave(imgData) {
+    async function doSave(imgData) {
+      const existingUser = await getUserOnce(u);
       const userObj = {
         username: u,
         password: p,
@@ -76,7 +79,8 @@ function showAdminArea(username) {
         spinLink,
         luckyLink: boxLink,
         eventLink,
-        menu4img: imgData || ""
+        menu4img: imgData || (existingUser && existingUser.menu4img) || "",
+        active: existingUser ? existingUser.active !== false : true
       };
       saveUser(userObj).then(()=> {
         alert("บันทึกสำเร็จ");
@@ -94,19 +98,6 @@ function showAdminArea(username) {
     } else {
       doSave('');
     }
-  });
-  
-  // clear all (remove major nodes) — caution
-  document.getElementById("clearAll").addEventListener("click", async () => {
-    if (!confirm("ลบข้อมูลทั้งหมดจาก Firebase? (ไม่สามารถกู้คืนได้ง่ายๆ)")) return;
-    await fbSet('users', null);
-    await fbSet('prizes', null);
-    await fbSet('winners', null);
-    await fbSet('history', null);
-    await fbSet('notify', null);
-    await fbSet('lastWinner', null);
-    alert("ลบข้อมูลเรียบร้อย");
-    location.reload();
   });
   
   // prize add
@@ -186,6 +177,35 @@ function showAdminArea(username) {
   // ---------- Rendering helpers (use cached values from listeners) ----------
   let cachedUsers = [];
   let cachedPrizes = [];
+  let cachedPromotionVisibility = {};
+
+  function isPromotionEnabled(menu) {
+    return cachedPromotionVisibility[String(menu)] !== false;
+  }
+
+  function renderPromotionControls() {
+    document.querySelectorAll('.promoToggle').forEach(button => {
+      const enabled = isPromotionEnabled(button.dataset.menu);
+      button.style.background = enabled ? '#188038' : '#d93025';
+      button.style.color = '#fff';
+      button.textContent = `${button.textContent.replace(/\s•\s(ເປີດ|ປິດ)$/, '')} • ${enabled ? 'ເປີດ' : 'ປິດ'}`;
+    });
+  }
+
+  document.querySelectorAll('.promoToggle').forEach(button => {
+    button.addEventListener('click', async () => {
+      const menu = button.dataset.menu;
+      button.disabled = true;
+      try {
+        await setPromotionEnabled(menu, !isPromotionEnabled(menu));
+      } catch (error) {
+        console.error(error);
+        alert('ไม่สามารถบันทึกสถานะโปรโมชั่นได้');
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
   
   function renderUsersTableCached() {
     const tbody = document.querySelector("#usersTable tbody");
@@ -196,16 +216,19 @@ function showAdminArea(username) {
       const fivePercent = calculateFivePercent(usr.credit);
       const creditColor = credit < 0 ? '#ff0000' : 'inherit';
       const fivePercentColor = fivePercent < 0 ? '#ff0000' : 'inherit';
+      const isActive = usr.active !== false;
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${usr.username}</td>
         <td>${usr.code || ""}</td>
         <td style="color:${creditColor}">${formatOneDecimal(credit)}</td>
         <td style="font-weight:700;color:${fivePercentColor};background:#a9d18e">${formatOneDecimal(fivePercent)}</td>
+        <td style="font-weight:700;color:${isActive ? '#188038' : '#d93025'}">${isActive ? 'ເປີດໃຊ້' : 'ຢຸດໃຊ້'}</td>
         <td>${usr.menu4img ? `<img class="thumb" src="${usr.menu4img}">` : "-"}</td>
         <td>spin:${usr.spinLink ? "yes" : ""} box:${usr.luckyLink ? "yes" : ""}</td>
         <td>
           <button class="btn btn-ghost editUser" data-username="${usr.username}">Edit</button>
+          <button class="btn ${isActive ? 'btn-danger' : 'btn-primary'} toggleUser" data-username="${usr.username}" data-active="${isActive}">${isActive ? 'ຢຸດໃຊ້' : 'ເປີດໃຊ້'}</button>
           <button class="btn btn-danger delUser" data-username="${usr.username}">Delete</button>
         </td>
       `;
@@ -234,6 +257,23 @@ function showAdminArea(username) {
         document.getElementById("u_boxLink").value = u.luckyLink || "";
         document.getElementById("u_eventLink").value = u.eventLink || "";
         alert('แก้ไขค่าแล้วกด "สร้าง/อัปเดต" เพื่อบันทึก');
+      };
+    });
+
+    document.querySelectorAll('.toggleUser').forEach(btn => {
+      btn.onclick = async () => {
+        const username = btn.dataset.username;
+        const currentlyActive = btn.dataset.active === 'true';
+        const action = currentlyActive ? 'ຢຸດໃຊ້' : 'ເປີດໃຊ້';
+        if (!confirm(`${action} ${username}?`)) return;
+        btn.disabled = true;
+        try {
+          await setUserActive(username, !currentlyActive);
+        } catch (error) {
+          console.error(error);
+          alert('ไม่สามารถเปลี่ยนสถานะผู้เล่นได้');
+          btn.disabled = false;
+        }
       };
     });
   
@@ -297,12 +337,14 @@ function showAdminArea(username) {
     watchLastWinner(lw => {
       document.getElementById("lastWinner").textContent = lw ? `${lw.time} • ${lw.username} ได้ ${lw.prizeLabel}` : "-";
     });
+
+    watchPromotionVisibility(value => {
+      cachedPromotionVisibility = value;
+      renderPromotionControls();
+    });
   }
   
   // on load
   (function initAdmin() {
     guardAdmin();
-    // start listeners if already logged in
-    const s = readAdminSession();
-    if (s) startAdminListeners();
   })();

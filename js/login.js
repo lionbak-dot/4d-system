@@ -52,10 +52,15 @@
           alert("รหัสผ่านไม่ถูกต้อง");
           return;
         }
+
+        if (user.role !== "admin" && user.active === false) {
+          alert("บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อแอดมิน");
+          return;
+        }
   
         if (user.role === "admin") {
-          saveAdminSession({ username: user.username, ts: Date.now() });
-          window.location.href = "admin.html";
+          alert("กรุณาเข้าสู่ระบบแอดมินด้วยอีเมลที่หน้า Admin");
+          return;
         } else {
           savePlayerSession({ username: user.username, ts: Date.now() });
           window.location.href = "player.html";

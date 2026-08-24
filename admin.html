@@ -32,8 +32,8 @@
     <h3 style="color:var(--accent);margin:0 0 8px 0">🔒 Admin Login</h3>
 
     <div class="row" style="gap:8px">
-      <input id="adminUser" class="input" placeholder="admin username" value="admin">
-      <input id="adminPass" class="input" type="password" placeholder="password" value="admin123">
+      <input id="adminUser" class="input" type="email" autocomplete="username" placeholder="admin email">
+      <input id="adminPass" class="input" type="password" autocomplete="current-password" placeholder="password">
       <button id="doAdminLogin" class="btn btn-primary">Login</button>
     </div>
 
@@ -44,6 +44,20 @@
 
   <!-- ADMIN AREA -->
   <div id="adminArea" style="display:none">
+
+    <!-- PROMOTION VISIBILITY -->
+    <div class="panel" style="margin-top:12px">
+      <h3 style="margin:0 0 10px 0;color:var(--accent)">🎛️ ເປີດ/ປິດໂປຣໂມຊັນ</h3>
+      <div class="grid-3" id="promotionControls">
+        <button class="btn promoToggle" data-menu="1">1 • ຄືນຍອດເສຍ 5%</button>
+        <button class="btn promoToggle" data-menu="4">2 • ໂປຣແຈກລົດແລະເງິນສົດ</button>
+        <button class="btn promoToggle" data-menu="2">3 • FreeSpin</button>
+        <button class="btn promoToggle" data-menu="3">4 • Lucky Box</button>
+        <button class="btn promoToggle" data-menu="5">5 • ໂປຣໂມຊັນ</button>
+        <button class="btn promoToggle" data-menu="6">6 • ໂປຣໂມຊັນ</button>
+      </div>
+      <div class="small muted" style="margin-top:8px">ສີຂຽວ = ຜູ້ຫຼິ້ນເຫັນ • ສີແດງ = ປິດໄວ້</div>
+    </div>
 
     <!-- PLAYER MANAGEMENT -->
     <div class="panel" style="margin-top:12px">
@@ -62,7 +76,6 @@
 
       <div style="margin-top:10px" class="controls">
         <button id="createUser" class="btn btn-primary">➕ สร้าง/อัปเดต</button>
-        <button id="clearAll" class="btn btn-danger">♻️ Clear All</button>
       </div>
 
       <table class="table" id="usersTable">
@@ -72,6 +85,7 @@
             <th>code</th>
             <th>credit</th> 
             <th>5%</th>
+            <th>status</th>
             <th>menu4</th>
             <th>links</th>
             <th>action</th>
@@ -148,6 +162,7 @@
 
 <!-- Firebase ต้องมาก่อน -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
 <script>
@@ -167,8 +182,8 @@
 </script>
 
 <!-- จากนั้นถึงจะโหลดระบบ -->
-<script src="js/common.js?v=20260824-2"></script>
-<script src="js/admin.js?v=20260824-2"></script>
+<script src="js/common.js?v=20260824-8"></script>
+<script src="js/admin.js?v=20260824-8"></script>
 
 </body>
 </html>

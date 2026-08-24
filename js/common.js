@@ -65,6 +65,9 @@ const KEYS = {
   function deleteUser(username) {
     return fbRemove(`users/${username}`);
   }
+  function setUserActive(username, active) {
+    return fbSet(`users/${username}/active`, Boolean(active));
+  }
   
   // ---------- Prizes ----------
   function getPrizesOnce() {
@@ -127,6 +130,14 @@ const KEYS = {
   function getNotifyOnce() {
     return fbOnce('notify');
   }
+
+  // ---------- Promotion visibility ----------
+  function setPromotionEnabled(menu, enabled) {
+    return fbSet(`promotionVisibility/${menu}`, Boolean(enabled));
+  }
+  function watchPromotionVisibility(cb) {
+    fbOn('promotionVisibility', value => cb(value || {}));
+  }
   
   // ---------- Utilities ----------
   function downloadCSV(filename, rows) {
@@ -164,19 +175,5 @@ const KEYS = {
   function readPlayerSession() { return readJSONLocal(KEYS.PLAYER_SESSION, null); }
   function removePlayerSession() { localStorage.removeItem(KEYS.PLAYER_SESSION); }
   
-  // ---------- Ensure default admin exists ----------
-  async function ensureDefaultAdmin() {
-    const username = 'admin';
-    const existing = await getUserOnce(username);
-    if (existing) return existing;
-
-    const defaultAdmin = {
-      username,
-      password: 'admin123',
-      role: 'admin'
-    };
-    await saveUser(defaultAdmin);
-    return defaultAdmin;
-  }
   
   
