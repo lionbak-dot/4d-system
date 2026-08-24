@@ -138,6 +138,14 @@ const KEYS = {
   function watchPromotionVisibility(cb) {
     fbOn('promotionVisibility', value => cb(value || {}));
   }
+
+  // ---------- Site images ----------
+  function setSiteImage(slot, imageData) {
+    return fbSet(`siteImages/${slot}`, imageData);
+  }
+  function watchSiteImages(cb) {
+    fbOn('siteImages', value => cb(value || {}));
+  }
   
   // ---------- Utilities ----------
   function downloadCSV(filename, rows) {

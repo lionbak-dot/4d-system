@@ -206,6 +206,46 @@ function showAdminArea(username) {
       }
     });
   });
+
+  function resizeImage(file, maxDimension) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        const image = new Image();
+        image.onerror = reject;
+        image.onload = () => {
+          const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(image.width * scale));
+          canvas.height = Math.max(1, Math.round(image.height * scale));
+          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        image.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  document.querySelectorAll('.siteImageInput').forEach(input => {
+    input.addEventListener('change', async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      input.disabled = true;
+      try {
+        const data = await resizeImage(file, input.dataset.slot === 'banner' ? 1600 : 1000);
+        await setSiteImage(input.dataset.slot, data);
+        alert('บันทึกรูปสำเร็จ');
+      } catch (error) {
+        console.error(error);
+        alert('ไม่สามารถบันทึกรูปได้');
+      } finally {
+        input.disabled = false;
+        input.value = '';
+      }
+    });
+  });
   
   function renderUsersTableCached() {
     const tbody = document.querySelector("#usersTable tbody");
@@ -341,6 +381,13 @@ function showAdminArea(username) {
     watchPromotionVisibility(value => {
       cachedPromotionVisibility = value;
       renderPromotionControls();
+    });
+    watchSiteImages(value => {
+      document.querySelectorAll('.siteImagePreview').forEach(preview => {
+        const source = value[preview.dataset.slot];
+        preview.src = source || '';
+        preview.style.display = source ? 'block' : 'none';
+      });
     });
   }
   

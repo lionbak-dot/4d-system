@@ -265,6 +265,18 @@ function ensurePlayerSession() {
         card.style.display = enabled ? '' : 'none';
       });
     });
+
+    watchSiteImages(value => {
+      const targets = {
+        banner: 'siteBanner', promo1: 'promoImage1', promo2: 'promoImage2',
+        promo3: 'promoImage3', promo4: 'promoImage4', promo5: 'promoImage5',
+        promo6: 'promoImage6'
+      };
+      Object.entries(targets).forEach(([slot, id]) => {
+        const element = document.getElementById(id);
+        if (element && value[slot]) element.src = value[slot];
+      });
+    });
   }
   
   function logoutPlayer() {
