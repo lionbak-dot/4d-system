@@ -39,6 +39,16 @@ const KEYS = {
   function getUserOnce(username) {
     return fbOnce(`users/${username}`).then(v => v || null);
   }
+  async function getUserCaseInsensitive(username) {
+    const exact = await getUserOnce(username);
+    if (exact) return exact;
+
+    const wanted = String(username).toLocaleLowerCase();
+    const users = await getAllUsersOnce();
+    return users.find(user =>
+      user && String(user.username || '').toLocaleLowerCase() === wanted
+    ) || null;
+  }
   function getAllUsersOnce() {
     return fbOnce('users').then(obj => {
       if (!obj) return [];
@@ -133,6 +143,17 @@ const KEYS = {
   function formatNumber(n) {
     return Number(n || 0).toLocaleString();
   }
+
+  function formatOneDecimal(n) {
+    return Number(n || 0).toLocaleString(undefined, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    });
+  }
+
+  function calculateFivePercent(value) {
+    return Number((Number(value || 0) * 0.05).toFixed(1));
+  }
   
   // ---------- Session helpers (still in localStorage) ----------
   function saveAdminSession(data) { saveJSONLocal(KEYS.ADMIN_SESSION, data); }
@@ -144,6 +165,18 @@ const KEYS = {
   function removePlayerSession() { localStorage.removeItem(KEYS.PLAYER_SESSION); }
   
   // ---------- Ensure default admin exists ----------
-  
+  async function ensureDefaultAdmin() {
+    const username = 'admin';
+    const existing = await getUserOnce(username);
+    if (existing) return existing;
+
+    const defaultAdmin = {
+      username,
+      password: 'admin123',
+      role: 'admin'
+    };
+    await saveUser(defaultAdmin);
+    return defaultAdmin;
+  }
   
   

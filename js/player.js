@@ -79,17 +79,17 @@ function ensurePlayerSession() {
   }
   
   function openLink(url) {
-  if (!url) return;
+    if (!url) return;
 
-  // iPhone Safari FIX
-  const a = document.createElement("a");
-  a.href = url;
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
+    let target = String(url).trim();
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(target)) {
+      target = `https://${target}`;
+    }
 
-  // ຕົວເລືອກສຳຄັນສຳລັບ iPhone
-  a.click();
-}
+    // Same-tab navigation is reliable on iPhone Safari even after an async
+    // Firebase/history operation; opening a new tab here may be blocked.
+    window.location.assign(target);
+  }
 
   
   // --- CORE: menu handling ---
@@ -147,7 +147,9 @@ function ensurePlayerSession() {
     // MENU 1 — คืนยอด 5%
     if (m === 1) {
       const credit = Number(currentUser.credit || 0);
-      const refund = Math.round(credit * 0.05);
+      // Preserve the credit sign and round 5% to one decimal place.
+      // Examples: -149.9 -> -7.5, 701.3 -> 35.1.
+      const refund = calculateFivePercent(credit);
       // show immediate popup (reuse popup)
       const popup = document.getElementById("popup");
       const title = document.getElementById("popupTitle");
@@ -267,4 +269,3 @@ function ensurePlayerSession() {
   
   
   
-
