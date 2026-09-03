@@ -45,9 +45,18 @@
             playerAuthEmail(username),
             playerAuthPassword(password)
           );
-          const account = await fbOnce(`playerAccounts/${credential.user.uid}`);
-          if (!account || !account.username) throw new Error('player-profile-not-found');
-          user = await getUserOnce(account.username);
+          // Most customers enter the username with its original casing. Read
+          // that secured profile directly and avoid an extra database roundtrip.
+          try {
+            user = await getUserOnce(username);
+          } catch (directReadError) {
+            user = null;
+          }
+          if (!user || user.authUid !== credential.user.uid) {
+            const account = await fbOnce(`playerAccounts/${credential.user.uid}`);
+            if (!account || !account.username) throw new Error('player-profile-not-found');
+            user = await getUserOnce(account.username);
+          }
         } catch (error) {
           // Temporary compatibility path while the administrator is migrating
           // existing accounts. It stops working automatically after final
@@ -81,7 +90,18 @@
           alert("กรุณาเข้าสู่ระบบแอดมินด้วยอีเมลที่หน้า Admin");
           return;
         } else {
-          savePlayerSession({ username: user.username, ts: Date.now() });
+          savePlayerSession({
+            username: user.username,
+            ts: Date.now(),
+            cachedUser: {
+              username: user.username,
+              credit: user.credit || 0,
+              spinLink: user.spinLink || '',
+              luckyLink: user.luckyLink || '',
+              eventLink: user.eventLink || '',
+              active: user.active !== false
+            }
+          });
           window.location.href = "player.html";
         }
       });

@@ -21,7 +21,7 @@ function ensurePlayerSession() {
   let session = ensurePlayerSession();
   if (!session) throw "no player session";
   let username = session.username;
-  let currentUser = null; // will hold live user object from Firebase
+  let currentUser = session.cachedUser || null; // refreshed by Firebase listener
   
   // --- UI helpers ---
   function setWhoAndCredit(u) {
@@ -90,6 +90,8 @@ function ensurePlayerSession() {
     // Firebase/history operation; opening a new tab here may be blocked.
     window.location.assign(target);
   }
+
+  if (currentUser) setWhoAndCredit(currentUser);
 
   
   // --- CORE: menu handling ---
