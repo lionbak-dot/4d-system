@@ -37,7 +37,6 @@
         }
   
         btn.disabled = true;
-        let user;
         try {
           // Secure path: Firebase Authentication verifies the password before
           // database rules allow access to this player's profile.
@@ -45,64 +44,18 @@
             playerAuthEmail(username),
             playerAuthPassword(password)
           );
-          // Most customers enter the username with its original casing. Read
-          // that secured profile directly and avoid an extra database roundtrip.
-          try {
-            user = await getUserOnce(username);
-          } catch (directReadError) {
-            user = null;
-          }
-          if (!user || user.authUid !== credential.user.uid) {
-            const account = await fbOnce(`playerAccounts/${credential.user.uid}`);
-            if (!account || !account.username) throw new Error('player-profile-not-found');
-            user = await getUserOnce(account.username);
-          }
+          // Authentication is the only request that must finish on this page.
+          // The secured profile is loaded on player.html so navigation feels
+          // immediate even on a high-latency mobile connection.
+          savePlayerSession({ username, authUid: credential.user.uid, ts: Date.now() });
+          window.location.replace("player.html");
+          return;
         } catch (error) {
-          // Temporary compatibility path while the administrator is migrating
-          // existing accounts. It stops working automatically after final
-          // private database rules are published.
-          try {
-            await firebase.auth().signOut();
-            user = await getUserCaseInsensitive(username);
-            if (!user || String(user.password) !== String(password)) {
-              alert("username หรือ password ผิด");
-              return;
-            }
-          } catch (fallbackError) {
-            console.error('Player sign-in failed:', error, fallbackError);
-            alert('username หรือ password ผิด หรือไม่สามารถเชื่อมต่อระบบได้');
-            return;
-          }
+          console.error('Player sign-in failed:', error);
+          alert('username หรือ password ผิด หรือไม่สามารถเชื่อมต่อระบบได้');
+          return;
         } finally {
           btn.disabled = false;
-        }
-        if (!user) {
-          alert("username หรือ password ผิด (ไม่พบผู้ใช้)");
-          return;
-        }
-
-        if (user.role !== "admin" && user.active === false) {
-          alert("บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อแอดมิน");
-          return;
-        }
-  
-        if (user.role === "admin") {
-          alert("กรุณาเข้าสู่ระบบแอดมินด้วยอีเมลที่หน้า Admin");
-          return;
-        } else {
-          savePlayerSession({
-            username: user.username,
-            ts: Date.now(),
-            cachedUser: {
-              username: user.username,
-              credit: user.credit || 0,
-              spinLink: user.spinLink || '',
-              luckyLink: user.luckyLink || '',
-              eventLink: user.eventLink || '',
-              active: user.active !== false
-            }
-          });
-          window.location.href = "player.html";
         }
       });
 

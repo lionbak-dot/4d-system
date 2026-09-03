@@ -329,6 +329,33 @@ function ensurePlayerSession() {
     firebase.auth().onAuthStateChanged(async authUser => {
       if (playerListenersStarted) return;
       if (authUser) {
+        // Resolve unusual username casing after navigation instead of making
+        // the login page wait for another database roundtrip.
+        try {
+          let profile = await getUserOnce(username);
+          if (!profile || profile.authUid !== authUser.uid) {
+            const account = await fbOnce(`playerAccounts/${authUser.uid}`);
+            if (!account || !account.username) throw new Error('player-profile-not-found');
+            username = account.username;
+            profile = await getUserOnce(username);
+          }
+          if (!profile || profile.authUid !== authUser.uid || profile.role === 'admin') {
+            throw new Error('invalid-player-profile');
+          }
+          if (profile.active === false) {
+            throw new Error('player-disabled');
+          }
+          currentUser = profile;
+          savePlayerSession({ username, authUid: authUser.uid, ts: Date.now(), cachedUser: profile });
+          setWhoAndCredit(profile);
+        } catch (error) {
+          console.error('Player profile unavailable:', error);
+          removePlayerSession();
+          await firebase.auth().signOut().catch(() => {});
+          alert('ບໍ່ພົບບັນຊີຜູ້ຫຼິ້ນ ຫຼືບັນຊີຖືກປິດ');
+          window.location.href = 'login.html';
+          return;
+        }
         playerListenersStarted = true;
         startPlayerListeners();
         return;
