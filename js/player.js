@@ -136,6 +136,28 @@ function ensurePlayerSession() {
   
   // do the actual action for a menu number
   async function doMenuAction(m) {
+    // Open external promotion links immediately from the user's click.
+    // Waiting for Firebase first can cause a blank/blocked page on slow iPhones.
+    if (m === 2 && currentUser) {
+      if (!currentUser.spinLink) {
+        alert("ບັນຊີນີ້ຍັງບໍ່ມີລິ້ງ FreeSpin ກະລຸນາຕິດຕໍ່ແອັດມິນ");
+        return;
+      }
+      pushHistory(username, `ເມນູ 3 • ເປີດ FreeSpin`).catch(console.error);
+      openLink(currentUser.spinLink);
+      return;
+    }
+
+    if (m === 3 && currentUser) {
+      if (!currentUser.luckyLink) {
+        alert("ບັນຊີນີ້ຍັງບໍ່ມີລິ້ງ Lucky Box ກະລຸນາຕິດຕໍ່ແອັດມິນ");
+        return;
+      }
+      pushHistory(username, `ເມນູ 4 • Lucky Box`).catch(console.error);
+      openLink(currentUser.luckyLink);
+      return;
+    }
+
     // ensure we have fresh user
     try {
       const snap = await getUserOnce(username);
@@ -172,20 +194,20 @@ function ensurePlayerSession() {
       return;
     }
   
-    // MENU 2 — Spin
+    // MENU 2 — Spin (fallback when live user data was not ready yet)
     if (m === 2) {
-      await pushHistory(username, `ເມນູ 2 • ເປີດ Spin ສະບາຍດີ`);
+      pushHistory(username, `ເມນູ 3 • ເປີດ FreeSpin`).catch(console.error);
       if (currentUser.spinLink) {
         openLink(currentUser.spinLink);
       } else {
-        alert("ยังไม่มีลิงก์ Spin");
+        alert("ບັນຊີນີ້ຍັງບໍ່ມີລິ້ງ FreeSpin ກະລຸນາຕິດຕໍ່ແອັດມິນ");
       }
       return;
     }
   
     // MENU 3 — Lucky Box
     if (m === 3) {
-      await pushHistory(username, `ເມນູ 3 • Lucky Box`);
+      pushHistory(username, `ເມນູ 4 • Lucky Box`).catch(console.error);
       if (currentUser.luckyLink) {
         openLink(currentUser.luckyLink);
       } else {
