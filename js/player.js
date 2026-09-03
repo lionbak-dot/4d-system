@@ -332,7 +332,15 @@ function ensurePlayerSession() {
         // Resolve unusual username casing after navigation instead of making
         // the login page wait for another database roundtrip.
         try {
-          let profile = await getUserOnce(username);
+          let profile = null;
+          // A differently-cased RTDB key can return permission_denied rather
+          // than a null value. Treat that as a missed direct lookup so the
+          // authenticated UID mapping still gets a chance to resolve it.
+          try {
+            profile = await getUserOnce(username);
+          } catch (directLookupError) {
+            console.info('Using authenticated username mapping');
+          }
           if (!profile || profile.authUid !== authUser.uid) {
             const account = await fbOnce(`playerAccounts/${authUser.uid}`);
             if (!account || !account.username) throw new Error('player-profile-not-found');
