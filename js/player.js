@@ -303,19 +303,47 @@ function ensurePlayerSession() {
   
   function logoutPlayer() {
     removePlayerSession();
-    window.location.href = "login.html";
+    const auth = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth() : null;
+    if (auth) {
+      auth.signOut().finally(() => { window.location.href = "login.html"; });
+    } else {
+      window.location.href = "login.html";
+    }
   }
   
   // bind logout button
   document.getElementById("logout")?.addEventListener("click", logoutPlayer);
   
-  // start listeners when db exists
+  let playerListenersStarted = false;
+
+  // Start only after Firebase restores the authenticated player. During the
+  // one-time migration window, an existing public account can still use the
+  // compatibility path; final private rules disable that fallback.
   function waitForDbAndStart() {
-    if (typeof db === 'undefined') {
+    if (typeof db === 'undefined' || typeof firebase === 'undefined' || !firebase.auth) {
       setTimeout(waitForDbAndStart, 50);
       return;
     }
-    startPlayerListeners();
+    firebase.auth().onAuthStateChanged(async authUser => {
+      if (playerListenersStarted) return;
+      if (authUser) {
+        playerListenersStarted = true;
+        startPlayerListeners();
+        return;
+      }
+      try {
+        const legacyUser = await getUserOnce(username);
+        if (legacyUser) {
+          playerListenersStarted = true;
+          startPlayerListeners();
+          return;
+        }
+      } catch (error) {
+        console.error('Player authentication required:', error);
+      }
+      removePlayerSession();
+      window.location.href = 'login.html';
+    });
   }
   waitForDbAndStart();
   

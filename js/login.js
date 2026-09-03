@@ -36,20 +36,39 @@
           return;
         }
   
+        btn.disabled = true;
         let user;
         try {
-          user = await getUserCaseInsensitive(username);
+          // Secure path: Firebase Authentication verifies the password before
+          // database rules allow access to this player's profile.
+          const credential = await firebase.auth().signInWithEmailAndPassword(
+            playerAuthEmail(username),
+            playerAuthPassword(password)
+          );
+          const account = await fbOnce(`playerAccounts/${credential.user.uid}`);
+          if (!account || !account.username) throw new Error('player-profile-not-found');
+          user = await getUserOnce(account.username);
         } catch (error) {
-          console.error('Unable to read user account:', error);
-          alert('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
-          return;
+          // Temporary compatibility path while the administrator is migrating
+          // existing accounts. It stops working automatically after final
+          // private database rules are published.
+          try {
+            await firebase.auth().signOut();
+            user = await getUserCaseInsensitive(username);
+            if (!user || String(user.password) !== String(password)) {
+              alert("username หรือ password ผิด");
+              return;
+            }
+          } catch (fallbackError) {
+            console.error('Player sign-in failed:', error, fallbackError);
+            alert('username หรือ password ผิด หรือไม่สามารถเชื่อมต่อระบบได้');
+            return;
+          }
+        } finally {
+          btn.disabled = false;
         }
         if (!user) {
           alert("username หรือ password ผิด (ไม่พบผู้ใช้)");
-          return;
-        }
-        if (String(user.password) !== String(password)) {
-          alert("รหัสผ่านไม่ถูกต้อง");
           return;
         }
 

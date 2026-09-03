@@ -3,6 +3,54 @@
 const AUTHORIZED_ADMIN_UID = 'X14VGAI35NNtBYIJKRYTb8OVCMQ2';
 let adminListenersStarted = false;
 
+function playerManagerAuth() {
+  let app = firebase.apps.find(item => item.name === 'playerAccountManager');
+  if (!app) app = firebase.initializeApp(firebase.app().options, 'playerAccountManager');
+  return app.auth();
+}
+
+async function ensurePlayerAuthAccount(user, newPassword, previousPassword) {
+  const auth = playerManagerAuth();
+  await auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
+  const email = playerAuthEmail(user.username);
+  const desiredPassword = playerAuthPassword(newPassword);
+  let credential;
+
+  try {
+    credential = await auth.createUserWithEmailAndPassword(email, desiredPassword);
+  } catch (error) {
+    if (error.code !== 'auth/email-already-in-use') throw error;
+    credential = await auth.signInWithEmailAndPassword(
+      email,
+      playerAuthPassword(previousPassword == null ? newPassword : previousPassword)
+    );
+    if (String(previousPassword) !== String(newPassword)) {
+      await credential.user.updatePassword(desiredPassword);
+    }
+  }
+
+  const uid = credential.user.uid;
+  await db.ref().update({
+    [`users/${user.username}/authUid`]: uid,
+    [`playerAccounts/${uid}`]: { username: user.username }
+  });
+  await auth.signOut();
+  return uid;
+}
+
+async function deletePlayerAuthAccount(user) {
+  if (!user || !user.authUid) return;
+  const auth = playerManagerAuth();
+  await auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
+  const credential = await auth.signInWithEmailAndPassword(
+    playerAuthEmail(user.username),
+    playerAuthPassword(user.password)
+  );
+  if (credential.user.uid !== user.authUid) throw new Error('player-auth-uid-mismatch');
+  await credential.user.delete();
+  await db.ref(`playerAccounts/${user.authUid}`).remove();
+}
+
 function showAdminArea(username) {
     document.getElementById("adminArea").style.display = "block";
     document.getElementById("loginGuard").style.display = "none";
@@ -70,9 +118,22 @@ function showAdminArea(username) {
   
     async function doSave(imgData) {
       const existingUser = await getUserOnce(u);
+      let authUid;
+      try {
+        authUid = await ensurePlayerAuthAccount(
+          { username: u },
+          p,
+          existingUser ? existingUser.password : p
+        );
+      } catch (error) {
+        console.error('Unable to create/update player authentication:', error);
+        alert('ไม่สามารถสร้างหรืออัปเดตบัญชี Authentication ได้ กรุณาตรวจสอบรหัสผ่านเดิม');
+        return;
+      }
       const userObj = {
         username: u,
         password: p,
+        authUid,
         role: "player",
         code,
         credit,
@@ -179,6 +240,49 @@ function showAdminArea(username) {
   let cachedPrizes = [];
   let cachedPromotionVisibility = {};
 
+  function renderMigrationStatus() {
+    const players = (cachedUsers || []).filter(user => user.role === 'player');
+    const migrated = players.filter(user => user.authUid).length;
+    const status = document.getElementById('playerMigrationStatus');
+    const button = document.getElementById('migratePlayers');
+    if (status) status.textContent = `Firebase Authentication: ${migrated}/${players.length} ບັນຊີ`;
+    if (button) {
+      button.disabled = players.length === 0 || migrated === players.length;
+      if (migrated === players.length && players.length) button.textContent = '✅ ຍ້າຍບັນຊີຄົບແລ້ວ';
+    }
+  }
+
+  document.getElementById('migratePlayers')?.addEventListener('click', async () => {
+    const button = document.getElementById('migratePlayers');
+    const status = document.getElementById('playerMigrationStatus');
+    const players = (cachedUsers || []).filter(user => user.role === 'player' && !user.authUid);
+    if (!players.length) return;
+    if (!confirm(`ย้ายผู้เล่น ${players.length} บัญชีเข้า Firebase Authentication?`)) return;
+
+    button.disabled = true;
+    let completed = 0;
+    const failures = [];
+    for (const player of players) {
+      try {
+        await ensurePlayerAuthAccount(player, player.password, player.password);
+        completed += 1;
+        status.textContent = `ກຳລັງຍ້າຍ ${completed}/${players.length}: ${player.username}`;
+      } catch (error) {
+        console.error('Migration failed for', player.username, error);
+        failures.push(player.username);
+      }
+    }
+    if (failures.length) {
+      status.textContent = `ຍ້າຍໄດ້ ${completed}/${players.length}; ບໍ່ສຳເລັດ: ${failures.join(', ')}`;
+      alert('มีบางบัญชีย้ายไม่สำเร็จ ห้ามปิดกฎการอ่านจนกว่าจะแก้ครบ');
+      button.disabled = false;
+    } else {
+      status.textContent = `Firebase Authentication: ຍ້າຍຄົບ ${completed} ບັນຊີແລ້ວ`;
+      button.textContent = '✅ ຍ້າຍບັນຊີຄົບແລ້ວ';
+      alert('ย้ายบัญชีผู้เล่นเข้า Firebase Authentication สำเร็จทั้งหมด');
+    }
+  });
+
   function isPromotionEnabled(menu) {
     return cachedPromotionVisibility[String(menu)] !== false;
   }
@@ -279,6 +383,14 @@ function showAdminArea(username) {
       btn.onclick = async () => {
         const username = btn.dataset.username;
         if (!confirm("ลบผู้เล่น?")) return;
+        const user = await getUserOnce(username);
+        try {
+          await deletePlayerAuthAccount(user);
+        } catch (error) {
+          console.error('Unable to delete player authentication:', error);
+          alert('ไม่สามารถลบบัญชี Authentication ได้ จึงยังไม่ลบข้อมูลผู้เล่น');
+          return;
+        }
         await deleteUser(username);
         // listeners will update UI
       };
@@ -362,6 +474,7 @@ function showAdminArea(username) {
     watchAllUsers(users => {
       cachedUsers = users;
       renderUsersTableCached();
+      renderMigrationStatus();
     });
     // prizes
     watchPrizes(prs => {

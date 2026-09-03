@@ -34,6 +34,21 @@ const KEYS = {
   function fbOff(path) {
     db.ref(path).off();
   }
+
+  // Player Firebase Authentication credentials are derived consistently from
+  // the existing username/password so customers can keep their current login.
+  function playerAuthEmail(username) {
+    const normalized = String(username || '').trim().toLocaleLowerCase();
+    const bytes = new TextEncoder().encode(normalized);
+    let binary = '';
+    bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+    const encoded = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    return `p.${encoded}@players.4d-system.app`;
+  }
+
+  function playerAuthPassword(password) {
+    return `L7!${String(password == null ? '' : password)}`;
+  }
   
   // ---------- Users ----------
   function getUserOnce(username) {
